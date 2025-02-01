@@ -1,0 +1,38 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" fill="#050505"/>
+  <rect width="1024" height="1024" fill="url(#bgGradient)"/>
+
+  <defs>
+    <radialGradient id="bgGradient" cx="50%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="wave1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="rgba(72, 187, 255, 0)"/>
+      <stop offset="15%" stop-color="rgba(72, 187, 255, 0.95)"/>
+      <stop offset="85%" stop-color="rgba(72, 187, 255, 0.95)"/>
+      <stop offset="100%" stop-color="rgba(72, 187, 255, 0)"/>
+    </linearGradient>
+
+    <linearGradient id="wave2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="rgba(156, 230, 255, 0)"/>
+      <stop offset="15%" stop-color="rgba(156, 230, 255, 0.75)"/>
+      <stop offset="85%" stop-color="rgba(156, 230, 255, 0.75)"/>
+      <stop offset="100%" stop-color="rgba(156, 230, 255, 0)"/>
+    </linearGradient>
+
+    <linearGradient id="wave3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="rgba(255, 255, 255, 0)"/>
+      <stop offset="15%" stop-color="rgba(255, 255, 255, 0.4)"/>
+      <stop offset="85%" stop-color="rgba(255, 255, 255, 0.4)"/>
+      <stop offset="100%" stop-color="rgba(255, 255, 255, 0)"/>
+    </linearGradient>
+  </defs>
+
+  <g stroke-linecap="round" fill="none" transform="translate(102, 0) scale(0.8)">
+    <path d="M 120,512 C 250,650 350,300 550,560 C 700,700 800,400 904,512" stroke="url(#wave3)" stroke-width="24"/>
+    <path d="M 120,512 C 280,380 400,750 580,480 C 720,320 800,600 904,512" stroke="url(#wave2)" stroke-width="32"/>
+    <path d="M 120,512 C 300,512 360,260 512,512 C 600,680 750,420 904,512" stroke="url(#wave1)" stroke-width="40"/>
+  </g>
+</svg>

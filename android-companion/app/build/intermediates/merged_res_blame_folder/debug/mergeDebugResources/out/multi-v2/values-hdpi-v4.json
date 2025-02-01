@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.airprompt.android.app-mergeDebugResources-2:/values-hdpi-v4/values-hdpi-v4.xml",
+            "map": [
+                {
+                    "source": "/private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/c46e6505daf2189a8b29aa534992250e/transformed/appcompat-1.7.0/res/values-hdpi-v4/values-hdpi-v4.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "6",
+                        "endColumns": "13",
+                        "endOffsets": "327"
+                    }
+                }
+            ]
+        }
+    ]
+}

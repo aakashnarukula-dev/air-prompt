@@ -1,0 +1,194 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.airprompt.android"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="26"
+9        android:targetSdkVersion="34" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:4:5-67
+11-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:4:22-64
+12    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+12-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:5:5-71
+12-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:5:22-68
+13    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+13-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:6:5-77
+13-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:6:22-74
+14    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+14-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:7:5-77
+14-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:7:22-74
+15
+16    <permission
+16-->[androidx.core:core:1.13.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/4efec5c5f9cc358f830cdca5854c4e09/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+17        android:name="com.airprompt.android.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+17-->[androidx.core:core:1.13.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/4efec5c5f9cc358f830cdca5854c4e09/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+18        android:protectionLevel="signature" />
+18-->[androidx.core:core:1.13.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/4efec5c5f9cc358f830cdca5854c4e09/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+19
+20    <uses-permission android:name="com.airprompt.android.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+20-->[androidx.core:core:1.13.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/4efec5c5f9cc358f830cdca5854c4e09/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+20-->[androidx.core:core:1.13.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/4efec5c5f9cc358f830cdca5854c4e09/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+21
+22    <application
+22-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:9:5-54:19
+23        android:name="com.airprompt.android.AirPromptApp"
+23-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:10:9-37
+24        android:allowBackup="true"
+24-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:11:9-35
+25        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+25-->[androidx.core:core:1.13.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/4efec5c5f9cc358f830cdca5854c4e09/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
+26        android:debuggable="true"
+27        android:extractNativeLibs="false"
+28        android:icon="@mipmap/ic_launcher"
+28-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:12:9-43
+29        android:label="@string/app_name"
+29-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:13:9-41
+30        android:roundIcon="@mipmap/ic_launcher_round"
+30-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:14:9-54
+31        android:supportsRtl="true"
+31-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:15:9-35
+32        android:theme="@style/Theme.AirPrompt" >
+32-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:16:9-47
+33        <activity
+33-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:17:9-37:20
+34            android:name="com.airprompt.android.MainActivity"
+34-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:18:13-41
+35            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
+35-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:19:13-90
+36            android:exported="true"
+36-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:20:13-36
+37            android:launchMode="singleTask" >
+37-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:21:13-44
+38            <intent-filter>
+38-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:22:13-26:29
+39                <action android:name="android.intent.action.MAIN" />
+39-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:23:17-69
+39-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:23:25-66
+40
+41                <category android:name="android.intent.category.LAUNCHER" />
+41-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:25:17-77
+41-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:25:27-74
+42            </intent-filter>
+43            <intent-filter>
+43-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:28:13-36:29
+44                <action android:name="android.intent.action.VIEW" />
+44-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:29:17-69
+44-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:29:25-66
+45
+46                <category android:name="android.intent.category.DEFAULT" />
+46-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:31:17-76
+46-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:31:27-73
+47                <category android:name="android.intent.category.BROWSABLE" />
+47-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:32:17-78
+47-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:32:27-75
+48
+49                <data android:scheme="https" />
+49-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:34:17-48
+49-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:34:23-45
+50                <data android:scheme="http" />
+50-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:34:17-48
+50-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:34:23-45
+51            </intent-filter>
+52        </activity>
+53
+54        <service
+54-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:39:9-43:56
+55            android:name="com.airprompt.android.LaunchMonitorService"
+55-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:40:13-49
+56            android:enabled="true"
+56-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:41:13-35
+57            android:exported="false"
+57-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:42:13-37
+58            android:foregroundServiceType="dataSync" />
+58-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:43:13-53
+59
+60        <receiver
+60-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:45:9-53:20
+61            android:name="com.airprompt.android.BootReceiver"
+61-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:46:13-41
+62            android:enabled="true"
+62-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:47:13-35
+63            android:exported="false" >
+63-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:48:13-37
+64            <intent-filter>
+64-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:49:13-52:29
+65                <action android:name="android.intent.action.BOOT_COMPLETED" />
+65-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:50:17-79
+65-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:50:25-76
+66                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+66-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:51:17-84
+66-->/Users/aakashnarukula/Developer/Air Prompt/android-companion/app/src/main/AndroidManifest.xml:51:25-81
+67            </intent-filter>
+68        </receiver>
+69
+70        <provider
+70-->[androidx.emoji2:emoji2:1.3.0] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/d391389c6cd8ff2c7f6a3f89c1b405b9/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+71            android:name="androidx.startup.InitializationProvider"
+71-->[androidx.emoji2:emoji2:1.3.0] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/d391389c6cd8ff2c7f6a3f89c1b405b9/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+72            android:authorities="com.airprompt.android.androidx-startup"
+72-->[androidx.emoji2:emoji2:1.3.0] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/d391389c6cd8ff2c7f6a3f89c1b405b9/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+73            android:exported="false" >
+73-->[androidx.emoji2:emoji2:1.3.0] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/d391389c6cd8ff2c7f6a3f89c1b405b9/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+74            <meta-data
+74-->[androidx.emoji2:emoji2:1.3.0] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/d391389c6cd8ff2c7f6a3f89c1b405b9/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+75                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+75-->[androidx.emoji2:emoji2:1.3.0] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/d391389c6cd8ff2c7f6a3f89c1b405b9/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+76                android:value="androidx.startup" />
+76-->[androidx.emoji2:emoji2:1.3.0] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/d391389c6cd8ff2c7f6a3f89c1b405b9/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+77            <meta-data
+77-->[androidx.lifecycle:lifecycle-process:2.8.4] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/44ccf2cc5b27ae4491d5e58563399241/transformed/lifecycle-process-2.8.4/AndroidManifest.xml:29:13-31:52
+78                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+78-->[androidx.lifecycle:lifecycle-process:2.8.4] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/44ccf2cc5b27ae4491d5e58563399241/transformed/lifecycle-process-2.8.4/AndroidManifest.xml:30:17-78
+79                android:value="androidx.startup" />
+79-->[androidx.lifecycle:lifecycle-process:2.8.4] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/44ccf2cc5b27ae4491d5e58563399241/transformed/lifecycle-process-2.8.4/AndroidManifest.xml:31:17-49
+80            <meta-data
+80-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+81                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+81-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+82                android:value="androidx.startup" />
+82-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+83        </provider>
+84
+85        <receiver
+85-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+86            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+86-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+87            android:directBootAware="false"
+87-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+88            android:enabled="true"
+88-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+89            android:exported="true"
+89-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+90            android:permission="android.permission.DUMP" >
+90-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+91            <intent-filter>
+91-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+92                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+92-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+92-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+93            </intent-filter>
+94            <intent-filter>
+94-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+95                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+95-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+95-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+96            </intent-filter>
+97            <intent-filter>
+97-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+98                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+98-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+98-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+99            </intent-filter>
+100            <intent-filter>
+100-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+101                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+101-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+101-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/tmp/airprompt-gradle-home/caches/9.4.1/transforms/662d5e21e8f0b728d57909abcbd824a7/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+102            </intent-filter>
+103        </receiver>
+104    </application>
+105
+106</manifest>

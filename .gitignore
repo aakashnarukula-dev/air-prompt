@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.build/
+.DS_Store
+.env
+.env.local
+.env.*.local
+.run/
+*.log
+backend/dist/
+mobile-pwa/dist/
+mac-widget/.build/
+mac-widget/.swiftpm/
+**/*-firebase-adminsdk-*.json
