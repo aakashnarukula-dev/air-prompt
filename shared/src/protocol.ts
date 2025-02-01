@@ -1,27 +1,36 @@
+// shared/src/protocol.ts
+export const PROTOCOL_VERSION = "2";
+
 export type Mode = "raw" | "prompt";
 export type Device = "mobile" | "mac";
-export type WidgetState = "idle" | "receiving" | "ready" | "error";
 
 export type ClientMessage =
-  | { type: "pair"; sessionId: string; device: Device }
-  | { type: "start"; mode: Mode; mimeType?: string; language?: string }
-  | { type: "audio"; seq: number; chunk: string }
-  | { type: "stop" }
-  | { type: "ack"; deliveryId: string }
-  | { type: "mode"; mode: Mode }
-  | { type: "ping"; ts: number };
+  | { type: "hello"; protocolVersion: string; idToken: string; device: Device; sessionId?: string }
+  | { type: "create_session"; protocolVersion: string }
+  | { type: "join_session"; protocolVersion: string; sessionId: string }
+  | { type: "transcript"; protocolVersion: string; text: string; mode: Mode; seq: number }
+  | { type: "mode"; protocolVersion: string; mode: Mode }
+  | { type: "ack"; protocolVersion: string; deliveryId: string }
+  | { type: "ping"; protocolVersion: string; ts: number };
+
+export type ServerErrorCode =
+  | "unauthenticated"
+  | "forbidden"
+  | "protocol_version"
+  | "rate_limit"
+  | "not_found"
+  | "bad_request"
+  | "internal";
 
 export type ServerMessage =
-  | { type: "paired"; sessionId: string; peerConnected: boolean }
-  | { type: "state"; value: WidgetState }
-  | { type: "partial"; text: string }
-  | { type: "final"; text: string; mode: Mode; deliveryId: string; replayed?: boolean }
-  | { type: "session"; sessionId: string; joinUrl: string }
-  | { type: "error"; message: string }
-  | { type: "pong"; ts: number };
+  | { type: "session_created"; protocolVersion: string; sessionId: string; joinUrl: string }
+  | { type: "paired"; protocolVersion: string; sessionId: string; peerConnected: boolean }
+  | { type: "final"; protocolVersion: string; text: string; mode: Mode; deliveryId: string; fallback?: boolean }
+  | { type: "error"; protocolVersion: string; code: ServerErrorCode; message: string }
+  | { type: "pong"; protocolVersion: string; ts: number };
 
 export const isClientMessage = (value: unknown): value is ClientMessage => {
   if (!value || typeof value !== "object") return false;
-  const type = (value as { type?: unknown }).type;
-  return typeof type === "string";
+  const obj = value as Record<string, unknown>;
+  return typeof obj.type === "string" && typeof obj.protocolVersion === "string";
 };
