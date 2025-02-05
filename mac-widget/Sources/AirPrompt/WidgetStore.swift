@@ -19,6 +19,24 @@ final class WidgetStore: ObservableObject {
     @Published var isRecording = false
     @Published var micPermissionDenied = false
 
+    @Published var idToken: String? = TokenStore.load()
+    @Published var isLoginPresented: Bool = false
+
+    func beginLogin() { isLoginPresented = true }
+
+    func completeLogin(token: String) {
+        self.idToken = token
+        TokenStore.save(token)
+        self.isLoginPresented = false
+        // Reconnect so the v2 hello carries the new token.
+        self.connect()
+    }
+
+    func signOut() {
+        TokenStore.clear()
+        self.idToken = nil
+    }
+
     private var socket: URLSessionWebSocketTask?
     private var config = AppConfigLoader.load()
     private var currentBackendBase = ""
@@ -67,7 +85,26 @@ final class WidgetStore: ObservableObject {
         socket?.cancel()
         socket = URLSession.shared.webSocketTask(with: url)
         socket?.resume()
-        send(["type": "pair", "sessionId": sessionId, "device": "mac"])
+
+        // v2 protocol: send hello, then create_session.
+        let hello: [String: Any] = [
+            "type": "hello",
+            "protocolVersion": "2",
+            "idToken": self.idToken ?? "",
+            "device": "mac"
+        ]
+        if let data = try? JSONSerialization.data(withJSONObject: hello) {
+            self.socket?.send(.string(String(data: data, encoding: .utf8) ?? "")) { _ in }
+        }
+
+        let createMsg: [String: Any] = [
+            "type": "create_session",
+            "protocolVersion": "2"
+        ]
+        if let data = try? JSONSerialization.data(withJSONObject: createMsg) {
+            self.socket?.send(.string(String(data: data, encoding: .utf8) ?? "")) { _ in }
+        }
+
         state = "idle"
         receive()
     }
@@ -169,37 +206,11 @@ final class WidgetStore: ObservableObject {
     }
 
     private func uploadRecording(url: URL) async {
+        // v2 protocol removed the /mac-transcribe HTTP path. Audio from the mac
+        // widget is obsolete — transcripts now arrive via the phone's WS stream.
         defer { try? FileManager.default.removeItem(at: url) }
-        guard !currentBackendBase.isEmpty,
-              var components = URLComponents(string: "\(currentBackendBase)/mac-transcribe") else {
-            liveText = "Backend URL missing."
-            state = "error"
-            return
-        }
-        components.queryItems = [
-            URLQueryItem(name: "sessionId", value: sessionId),
-            URLQueryItem(name: "mode", value: "raw")
-        ]
-        guard let endpoint = components.url else { return }
-        guard let data = try? Data(contentsOf: url) else {
-            liveText = "Recording read failed."
-            state = "error"
-            return
-        }
-        var request = URLRequest(url: endpoint)
-        request.httpMethod = "POST"
-        request.setValue("audio/mp4", forHTTPHeaderField: "Content-Type")
-        do {
-            let (_, response) = try await URLSession.shared.upload(for: request, from: data)
-            if let http = response as? HTTPURLResponse, http.statusCode != 200 {
-                liveText = "Transcribe failed (\(http.statusCode))."
-                state = "error"
-            }
-            // Final result arrives via WS `final` handler.
-        } catch {
-            liveText = "Upload error: \(error.localizedDescription)"
-            state = "error"
-        }
+        liveText = "Mac mic is disabled in v2. Speak from your phone."
+        state = "idle"
     }
 
     private func receive() {
@@ -224,6 +235,16 @@ final class WidgetStore: ObservableObject {
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let type = json["type"] as? String else { return }
         switch type {
+        case "session_created":
+            if let sessionId = json["sessionId"] as? String {
+                self.sessionId = sessionId
+            }
+            if let serverJoinURL = json["joinUrl"] as? String,
+               !serverJoinURL.isEmpty,
+               !serverJoinURL.contains("localhost") {
+                self.joinURL = serverJoinURL
+            }
+            // Rebuild QR by nudging showQRCode flag state consumers observe joinURL directly.
         case "session":
             if let sessionId = json["sessionId"] as? String {
                 self.sessionId = sessionId

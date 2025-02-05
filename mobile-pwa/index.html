@@ -1,15 +1,36 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0d1117" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="/icon-512.png" />
     <title>Air Prompt</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#0b0b0f" />
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <section id="login-view" hidden>
+        <h1>Air Prompt</h1>
+        <button data-provider="google">Continue with Google</button>
+        <button data-provider="apple">Continue with Apple</button>
+        <button data-provider="github">Continue with GitHub</button>
+      </section>
+      <section id="pair-view" hidden>
+        <p>Scan the QR code from your Mac widget, or enter session ID.</p>
+        <input id="session-input" placeholder="Session ID" />
+        <button id="join-btn">Join session</button>
+      </section>
+      <section id="record-view" hidden>
+        <div id="status">Idle</div>
+        <div id="interim"></div>
+        <div class="controls">
+          <button id="mode-toggle">Mode: raw</button>
+          <button id="talk-btn">Hold to talk</button>
+          <button id="logout-btn">Sign out</button>
+        </div>
+      </section>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
-  </html>
+</html>

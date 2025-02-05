@@ -1,0 +1,33 @@
+app = "airprompt"
+primary_region = "bom"
+
+[build]
+  dockerfile = "backend/Dockerfile"
+  [build.args]
+    VITE_FIREBASE_AUTH_DOMAIN = "air-prompt.firebaseapp.com"
+    VITE_FIREBASE_PROJECT_ID = "air-prompt"
+    VITE_BACKEND_WS_URL = "wss://airprompt.fly.dev/ws"
+
+[env]
+  PORT = "8787"
+  APP_BASE_URL = "https://airprompt.fly.dev"
+  ALLOWED_ORIGINS = "https://airprompt.fly.dev"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512

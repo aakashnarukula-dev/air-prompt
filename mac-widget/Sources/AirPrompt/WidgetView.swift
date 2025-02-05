@@ -18,6 +18,13 @@ struct WidgetView: View {
         }
         .frame(width: windowSize.width, height: windowSize.height, alignment: .top)
         .background(WindowAccessor(size: windowSize))
+        .sheet(isPresented: $store.isLoginPresented) {
+            LoginWebView(
+                loginURL: URL(string: "\(AppConfig.backendBaseURL)/login.html")!,
+                onToken: { token in store.completeLogin(token: token) }
+            )
+            .frame(width: 480, height: 640)
+        }
     }
 }
 
@@ -67,6 +74,21 @@ private struct CompactWidgetView: View {
             }
             .buttonStyle(.plain)
             .foregroundStyle(.white)
+
+            // Sign in / Sign out
+            Button {
+                if store.idToken == nil {
+                    store.beginLogin()
+                } else {
+                    store.signOut()
+                }
+            } label: {
+                Image(systemName: store.idToken == nil ? "person.crop.circle.badge.plus" : "person.crop.circle.badge.checkmark")
+                    .font(.system(size: 14, weight: .semibold))
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(store.idToken == nil ? .white.opacity(0.55) : .white)
 
             // Close demo (macOS-style red close)
             Button {
