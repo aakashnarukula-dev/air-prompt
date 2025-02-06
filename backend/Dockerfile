@@ -29,4 +29,4 @@ COPY --from=backend-build /app/backend/package.json ./backend/
 COPY --from=pwa-build /app/mobile-pwa/dist ./mobile-pwa/dist
 COPY shared ./shared
 EXPOSE 8787
-CMD ["node", "backend/dist/server.js"]
+CMD ["node", "backend/dist/backend/src/server.js"]
