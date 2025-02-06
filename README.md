@@ -1,78 +1,97 @@
 # Air Prompt
 
-Cross-device speech-to-text system with:
+Cross-device speech-to-text SaaS. Speak on phone → cleaned text auto-pastes on Mac/Windows.
 
-- `mobile-pwa`: browser-based hold-to-talk PWA
-- `backend`: low-latency WebSocket relay with Deepgram + optional LLM cleanup
-- `mac-widget`: SwiftUI floating widget for receive/copy/paste
-- `shared`: minimal protocol shared across clients
+- `mobile-pwa/` — browser PWA (Web Speech API + Firebase Auth)
+- `backend/` — WebSocket + Postgres + Gemini cleanup (Fly.io)
+- `mac-widget/` — SwiftUI widget (QR pairing, auto-paste)
+- `mac-widget-legacy/` — V1 Swift widget (archive-in-place, still used in V2)
+- `shared/` — versioned protocol
 
-## Quick start
+## Prerequisites
 
-1. Create `backend/.env` from `backend/.env.example`.
-2. Install dependencies:
+- Node 20, npm
+- Postgres 16 (`brew install postgresql@16 && brew services start postgresql@16`)
+- Firebase project with Google + Apple + GitHub providers enabled (Apple optional)
+- Gemini API key ([aistudio.google.com/apikey](https://aistudio.google.com/apikey))
+- Fly.io account (`brew install flyctl`) — for production deploy
+- Xcode (for mac-widget)
 
-```bash
-cd /Users/aakashnarukula/Developer/Air\ Prompt/backend && npm install
-cd /Users/aakashnarukula/Developer/Air\ Prompt/mobile-pwa && npm install
-```
-
-3. Start backend:
-
-```bash
-cd /Users/aakashnarukula/Developer/Air\ Prompt/backend && npm run dev
-```
-
-4. Start mobile PWA:
+## Local dev
 
 ```bash
-cd /Users/aakashnarukula/Developer/Air\ Prompt/mobile-pwa && npm run dev
+# 1. Env files (already created with placeholders; fill in Firebase + Gemini)
+#    backend/.env            — server secrets (Firebase admin, Gemini key, DB url)
+#    mobile-pwa/.env         — public Firebase web config
+
+# 2. Install deps
+cd backend && npm install
+cd ../mobile-pwa && npm install
+
+# 3. Create DB + run migrations
+createdb airprompt
+cd ../backend && npm run migrate
+
+# 4. Run backend
+npm run dev                # backend on :8787 with tsx watch
+
+# 5. In another terminal, run PWA
+cd ../mobile-pwa && npm run dev   # Vite on :5173
+
+# 6. Mac widget (in third terminal) — optional
+cd ../mac-widget && swift run AirPrompt
 ```
 
-5. Open `mac-widget` in Xcode or build with SwiftPM.
-
-## One-command demo
-
-If `ngrok` is installed and configured, run:
+## Production smoke test (local)
 
 ```bash
-cd /Users/aakashnarukula/Developer/Air\ Prompt && ./.airprompt/start-demo.sh
+cd backend && npm run build
+cd ../mobile-pwa && npm run build
+cd ../backend && PWA_DIST="$(pwd)/../mobile-pwa/dist" npm start
+curl http://localhost:8787/health   # expect {"ok":true,"db":"ok",...}
+open http://localhost:8787/         # PWA login page
 ```
 
-This starts:
-
-- backend on `localhost:8787`
-- `ngrok` tunnel for secure mobile access
-- the macOS widget with the live HTTPS URL in its QR
-
-To stop everything:
+## Deploy (Fly.io)
 
 ```bash
-cd /Users/aakashnarukula/Developer/Air\ Prompt && ./.airprompt/stop-demo.sh
+flyctl launch            # one-time, skip if fly.toml exists
+flyctl secrets set \
+  FIREBASE_PROJECT_ID=... \
+  FIREBASE_CLIENT_EMAIL=... \
+  FIREBASE_PRIVATE_KEY='...' \
+  GEMINI_API_KEY=... \
+  DATABASE_URL='postgres://...' \
+  ALLOWED_ORIGINS=https://airprompt.fly.dev
+
+# Bake the PWA-side Firebase public config into the image at build time:
+flyctl deploy --build-arg \
+  VITE_FIREBASE_API_KEY=... \
+  --build-arg VITE_FIREBASE_APP_ID=...
+
+# Run migrations remotely
+flyctl ssh console -C "node backend/dist/backend/src/migrate.js"
 ```
 
-## Easiest Launch
+## Architecture
 
-For non-technical use on macOS, just double-click:
+- Phone PWA uses Web Speech API (on-device STT) — server never sees audio
+- Text → WebSocket → server → Gemini Flash-Lite cleanup (only in "prompt" mode) → Mac widget → auto-paste
+- Sessions scoped per authenticated Firebase user; ephemeral (no transcript storage)
+- Cost per heavy user (2 hr/day): ~$0.50/month
 
-- `Air Prompt.app`
+See `docs/superpowers/specs/2026-04-23-air-prompt-saas-foundation-design.md` for full design.
 
-The launcher app starts the backend, secure tunnel, and widget with no Terminal window. Stopping is handled from the widget UI.
-
-## DMG Build
-
-To create a shareable disk image for non-technical Mac users:
+## Tests
 
 ```bash
-cd /Users/aakashnarukula/Developer/Air\ Prompt && ./.airprompt/build-dmg.sh
+cd backend && npm test    # 22 tests across config/auth/gemini/sessions/ratelimit/ws
 ```
 
-This generates `Air Prompt.dmg` in the project root.
+## Known follow-ups (V2+)
 
-## Flow
-
-- Mac widget generates a short session ID and QR code.
-- Mobile scans QR, opens the PWA, and joins the same session.
-- Hold mic to stream audio.
-- `raw`: Deepgram final transcript goes straight to macOS.
-- `prompt`: final transcript is cleaned once by the LLM, then sent to macOS.
+- Tauri widget rewrite for unified Mac + Windows
+- Stripe billing + freemium quota enforcement
+- Swift widget SourceKit diagnostics may need manual follow-up (see mac-widget/ — `@Published` on struct error, build with `swift build` to verify)
+- Apple SignIn provider (needs Apple Developer account)
+- Custom domain migration once revenue-stable
