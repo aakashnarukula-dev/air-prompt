@@ -50,7 +50,7 @@ export function attachHandler(socket: WebSocket, deps: HandlerDeps) {
             : deps.sessions.attachMobile(msg.sessionId, row.id, socket);
           ctx.sessionId = s.id;
           send(socket, { type: "paired", protocolVersion: PROTOCOL_VERSION, sessionId: s.id, peerConnected: bothConnected(s) });
-          notifyPeer(s, socket, { type: "paired", protocolVersion: PROTOCOL_VERSION, sessionId: s.id, peerConnected: true });
+          notifyPeer(s, socket, { type: "paired", protocolVersion: PROTOCOL_VERSION, sessionId: s.id, peerConnected: bothConnected(s) });
         }
       } catch (e: any) {
         send(socket, { type: "error", protocolVersion: PROTOCOL_VERSION, code: "unauthenticated", message: e.message });
@@ -99,10 +99,6 @@ export function attachHandler(socket: WebSocket, deps: HandlerDeps) {
       }
       case "transcript": {
         if (!ctx.sessionId) return;
-        if (!deps.rateLimit.take(ctx.userDbId)) {
-          send(socket, { type: "error", protocolVersion: PROTOCOL_VERSION, code: "rate_limit", message: "too many requests" });
-          return;
-        }
         const s = deps.sessions.find(ctx.sessionId);
         if (!s) return;
         deps.sessions.touch(s);
@@ -110,6 +106,10 @@ export function attachHandler(socket: WebSocket, deps: HandlerDeps) {
         let fallback = false;
         let tokensIn = 0, tokensOut = 0;
         if (msg.mode === "prompt") {
+          if (!deps.rateLimit.take(ctx.userDbId)) {
+            send(socket, { type: "error", protocolVersion: PROTOCOL_VERSION, code: "rate_limit", message: "too many cleanup requests" });
+            return;
+          }
           const r = await deps.cleaner(msg.text);
           outText = r.text; fallback = r.fallback;
           tokensIn = r.tokensIn; tokensOut = r.tokensOut;

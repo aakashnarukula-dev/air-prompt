@@ -66,6 +66,12 @@ final class WidgetStore: ObservableObject {
     }
 
     func connect() {
+        // Require auth before opening a WS — prevents unauth reconnect loop.
+        guard self.idToken != nil else {
+            self.state = "needs_login"
+            self.isLoginPresented = true
+            return
+        }
         config = AppConfigLoader.load()
         let backendBase = config?.backendURL
             ?? ProcessInfo.processInfo.environment["AIR_PROMPT_BACKEND_URL"]

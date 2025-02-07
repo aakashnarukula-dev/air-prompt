@@ -10,29 +10,37 @@ export interface WsClientEvents {
 export class WsClient {
   private socket: WebSocket | null = null;
   private events: WsClientEvents | null = null;
+  private pending: ClientMessage[] = [];
 
-  async connect(url: string, idToken: string, device: "mobile" | "mac", sessionId: string | undefined, events: WsClientEvents) {
+  connect(url: string, idToken: string, device: "mobile" | "mac", sessionId: string | undefined, events: WsClientEvents): Promise<void> {
     this.events = events;
-    const socket = new WebSocket(url);
-    this.socket = socket;
-    socket.addEventListener("open", () => {
-      this.send({
-        type: "hello",
-        protocolVersion: PROTOCOL_VERSION,
-        idToken,
-        device,
-        sessionId,
+    this.pending = [];
+    return new Promise((resolve, reject) => {
+      const socket = new WebSocket(url);
+      this.socket = socket;
+      socket.addEventListener("open", () => {
+        this.send({
+          type: "hello",
+          protocolVersion: PROTOCOL_VERSION,
+          idToken,
+          device,
+          sessionId,
+        });
+        for (const msg of this.pending) this.send(msg);
+        this.pending = [];
+        resolve();
       });
+      socket.addEventListener("message", (e) => {
+        try {
+          const msg = JSON.parse(e.data) as ServerMessage;
+          this.handle(msg);
+        } catch {
+          // ignore malformed
+        }
+      });
+      socket.addEventListener("error", () => reject(new Error("ws connection error")));
+      socket.addEventListener("close", () => events.onClose());
     });
-    socket.addEventListener("message", (e) => {
-      try {
-        const msg = JSON.parse(e.data) as ServerMessage;
-        this.handle(msg);
-      } catch {
-        // ignore
-      }
-    });
-    socket.addEventListener("close", () => events.onClose());
   }
 
   joinSession(sessionId: string) {
@@ -56,8 +64,11 @@ export class WsClient {
   }
 
   private send(msg: ClientMessage) {
-    if (this.socket?.readyState !== WebSocket.OPEN) return;
-    this.socket.send(JSON.stringify(msg));
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify(msg));
+    } else {
+      this.pending.push(msg);
+    }
   }
 
   private handle(msg: ServerMessage) {
