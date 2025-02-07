@@ -3,6 +3,7 @@ import AVFoundation
 import Combine
 import CoreImage.CIFilterBuiltins
 import Foundation
+import Speech
 
 @MainActor
 final class WidgetStore: ObservableObject {
@@ -40,8 +41,11 @@ final class WidgetStore: ObservableObject {
     private var socket: URLSessionWebSocketTask?
     private var config = AppConfigLoader.load()
     private var currentBackendBase = ""
-    private var audioRecorder: AVAudioRecorder?
-    private var recordingURL: URL?
+    private var speechRecognizer: SFSpeechRecognizer?
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var recognitionTask: SFSpeechRecognitionTask?
+    private let audioEngine = AVAudioEngine()
+    private var currentSeq: Int = 0
 
     func bootstrap() {
         let mobileBase = config?.mobileURL
@@ -155,68 +159,126 @@ final class WidgetStore: ObservableObject {
         }
     }
 
-    private func startRecording() {
+    func startRecording() {
         showQRCode = false
-        switch AVCaptureDevice.authorizationStatus(for: .audio) {
-        case .authorized:
-            beginRecording()
-        case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
-                Task { @MainActor in
-                    guard let self else { return }
-                    if granted { self.beginRecording() }
-                    else { self.micPermissionDenied = true }
+        guard idToken != nil else {
+            state = "needs_login"
+            isLoginPresented = true
+            return
+        }
+        SFSpeechRecognizer.requestAuthorization { [weak self] status in
+            Task { @MainActor in
+                guard let self else { return }
+                guard status == .authorized else {
+                    self.micPermissionDenied = true
+                    self.liveText = "Enable Speech Recognition in System Settings > Privacy."
+                    return
+                }
+                switch AVCaptureDevice.authorizationStatus(for: .audio) {
+                case .authorized:
+                    self.beginRecognition()
+                case .notDetermined:
+                    AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
+                        Task { @MainActor in
+                            guard let self else { return }
+                            if granted { self.beginRecognition() }
+                            else {
+                                self.micPermissionDenied = true
+                                self.liveText = "Enable mic in System Settings > Privacy."
+                            }
+                        }
+                    }
+                default:
+                    self.micPermissionDenied = true
+                    self.liveText = "Enable mic in System Settings > Privacy."
                 }
             }
-        default:
-            micPermissionDenied = true
-            liveText = "Enable mic in System Settings > Privacy."
         }
     }
 
-    private func beginRecording() {
-        let tmp = FileManager.default.temporaryDirectory
-            .appendingPathComponent("airprompt-\(UUID().uuidString).m4a")
-        let settings: [String: Any] = [
-            AVFormatIDKey: kAudioFormatMPEG4AAC,
-            AVSampleRateKey: 16000,
-            AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.medium.rawValue
-        ]
+    private func beginRecognition() {
+        let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
+        guard let recognizer, recognizer.isAvailable else {
+            state = "error"
+            liveText = "Speech recognizer unavailable."
+            return
+        }
+        self.speechRecognizer = recognizer
+
+        recognitionTask?.cancel()
+        recognitionTask = nil
+
+        let request = SFSpeechAudioBufferRecognitionRequest()
+        request.shouldReportPartialResults = true
+        if #available(macOS 13, *) { request.requiresOnDeviceRecognition = true }
+        self.recognitionRequest = request
+
+        let inputNode = audioEngine.inputNode
+        let format = inputNode.outputFormat(forBus: 0)
+        inputNode.removeTap(onBus: 0)
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
+            self?.recognitionRequest?.append(buffer)
+        }
+
+        audioEngine.prepare()
         do {
-            let recorder = try AVAudioRecorder(url: tmp, settings: settings)
-            recorder.prepareToRecord()
-            guard recorder.record() else {
-                liveText = "Could not start mic."
-                return
-            }
-            audioRecorder = recorder
-            recordingURL = tmp
-            isRecording = true
-            state = "receiving"
-            liveText = "Listening…"
+            try audioEngine.start()
         } catch {
+            state = "error"
             liveText = "Mic error: \(error.localizedDescription)"
+            return
+        }
+
+        isRecording = true
+        state = "receiving"
+        liveText = "Listening…"
+
+        recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
+            guard let self = self else { return }
+            if let result = result {
+                let text = result.bestTranscription.formattedString
+                Task { @MainActor in self.liveText = text }
+                if result.isFinal {
+                    Task { @MainActor in self.sendTranscript(text: text) }
+                }
+            }
+            if error != nil || (result?.isFinal ?? false) {
+                Task { @MainActor in self.finalizeRecording() }
+            }
         }
     }
 
     func stopRecording() {
-        guard let recorder = audioRecorder, let url = recordingURL else { return }
-        recorder.stop()
-        audioRecorder = nil
-        recordingURL = nil
+        guard isRecording else { return }
+        audioEngine.stop()
+        recognitionRequest?.endAudio()
         isRecording = false
-        state = "processing"
-        liveText = "Transcribing…"
-        Task { await uploadRecording(url: url) }
+        // Recognition task will fire final result, then finalizeRecording.
     }
 
-    private func uploadRecording(url: URL) async {
-        // v2 protocol removed the /mac-transcribe HTTP path. Audio from the mac
-        // widget is obsolete — transcripts now arrive via the phone's WS stream.
-        defer { try? FileManager.default.removeItem(at: url) }
-        liveText = "Mac mic is disabled in v2. Speak from your phone."
-        state = "idle"
+    private func finalizeRecording() {
+        audioEngine.inputNode.removeTap(onBus: 0)
+        recognitionRequest = nil
+        recognitionTask = nil
+        isRecording = false
+        if state == "receiving" { state = "idle" }
+    }
+
+    private func sendTranscript(text: String) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        currentSeq += 1
+        let msg: [String: Any] = [
+            "type": "transcript",
+            "protocolVersion": "2",
+            "text": trimmed,
+            "mode": "prompt",
+            "seq": currentSeq
+        ]
+        if let data = try? JSONSerialization.data(withJSONObject: msg),
+           let str = String(data: data, encoding: .utf8) {
+            socket?.send(.string(str)) { _ in }
+        }
     }
 
     private func receive() {

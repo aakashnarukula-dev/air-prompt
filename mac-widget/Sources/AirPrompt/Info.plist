@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.airprompt.widget</string>
+    <key>CFBundleName</key>
+    <string>Air Prompt</string>
+    <key>CFBundleDisplayName</key>
+    <string>Air Prompt</string>
+    <key>CFBundleVersion</key>
+    <string>2.0.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>2.0.0</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Air Prompt transcribes your voice on-device to paste cleaned text into any app.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Air Prompt uses on-device speech recognition to transcribe your voice privately.</string>
+</dict>
+</plist>
