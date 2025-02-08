@@ -18,13 +18,6 @@ struct WidgetView: View {
         }
         .frame(width: windowSize.width, height: windowSize.height, alignment: .top)
         .background(WindowAccessor(size: windowSize))
-        .sheet(isPresented: $store.isLoginPresented) {
-            LoginWebView(
-                loginURL: URL(string: "\(AppConfig.backendBaseURL)/login.html")!,
-                onToken: { token in store.completeLogin(token: token) }
-            )
-            .frame(width: 480, height: 640)
-        }
     }
 }
 

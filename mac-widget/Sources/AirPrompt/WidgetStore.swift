@@ -22,8 +22,64 @@ final class WidgetStore: ObservableObject {
 
     @Published var idToken: String? = TokenStore.load()
     @Published var isLoginPresented: Bool = false
+    @Published var pollState: String?
 
-    func beginLogin() { isLoginPresented = true }
+    private var pollTimer: Timer?
+
+    func beginLogin() {
+        let state = UUID().uuidString
+        self.pollState = state
+        let backendBase = currentBackendBase.isEmpty
+            ? (AppConfigLoader.load()?.backendURL ?? "http://localhost:8787")
+            : currentBackendBase
+        let urlStr = "\(backendBase)/login.html?state=\(state)&widget=1"
+        if let url = URL(string: urlStr) {
+            NSWorkspace.shared.open(url)
+        }
+        startPollingForToken()
+    }
+
+    private func startPollingForToken() {
+        pollTimer?.invalidate()
+        let started = Date()
+        pollTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self = self, let state = self.pollState else { return }
+                if Date().timeIntervalSince(started) > 300 {
+                    self.pollTimer?.invalidate()
+                    self.pollTimer = nil
+                    self.pollState = nil
+                    return
+                }
+                self.pollTokenOnce(state: state) { [weak self] token in
+                    Task { @MainActor in
+                        guard let self, let token else { return }
+                        self.pollTimer?.invalidate()
+                        self.pollTimer = nil
+                        self.pollState = nil
+                        self.completeLogin(token: token)
+                    }
+                }
+            }
+        }
+    }
+
+    private func pollTokenOnce(state: String, onToken: @Sendable @escaping (String?) -> Void) {
+        let backendBase = currentBackendBase.isEmpty
+            ? (AppConfigLoader.load()?.backendURL ?? "http://localhost:8787")
+            : currentBackendBase
+        guard let url = URL(string: "\(backendBase)/auth/poll?state=\(state)") else {
+            onToken(nil); return
+        }
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            guard let data = data,
+                  let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let token = obj["idToken"] as? String else {
+                onToken(nil); return
+            }
+            onToken(token)
+        }.resume()
+    }
 
     func completeLogin(token: String) {
         self.idToken = token

@@ -10,6 +10,7 @@ import { TokenBucket } from "./rate-limit.js";
 import { attachHandler } from "./ws/handler.js";
 import { handleHealth } from "./routes/health.js";
 import { serveStatic } from "./routes/static.js";
+import { AuthCache } from "./auth-cache.js";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -37,6 +38,7 @@ async function main() {
   const cleaner = createCleaner({ apiKey: config.geminiApiKey, model: config.geminiModel });
   const sessions = new SessionStore({ ttlMs: config.sessionTtlMs });
   const rateLimit = new TokenBucket({ capacity: 60, refillPerSec: 1 });
+  const authCache = new AuthCache();
 
   const httpServer = createServer(async (req, res) => {
     const origin = req.headers.origin;
@@ -44,9 +46,37 @@ async function main() {
       res.setHeader("access-control-allow-origin", origin);
       res.setHeader("access-control-allow-credentials", "true");
     }
+    res.setHeader("access-control-allow-methods", "GET, POST, OPTIONS");
+    res.setHeader("access-control-allow-headers", "content-type");
     if (req.method === "OPTIONS") { res.end(); return; }
 
     const path = (req.url ?? "/").split("?")[0];
+    if (path === "/auth/deposit" && req.method === "POST") {
+      let body = "";
+      req.on("data", (c) => { body += c; });
+      req.on("end", () => {
+        try {
+          const { state, idToken } = JSON.parse(body);
+          if (typeof state !== "string" || typeof idToken !== "string" || !state || !idToken) {
+            res.statusCode = 400; res.end("bad"); return;
+          }
+          authCache.deposit(state, idToken);
+          res.setHeader("content-type", "application/json");
+          res.end(JSON.stringify({ ok: true }));
+        } catch {
+          res.statusCode = 400; res.end("bad");
+        }
+      });
+      return;
+    }
+    if (path === "/auth/poll" && req.method === "GET") {
+      const url = new URL(req.url ?? "/", "http://x");
+      const state = url.searchParams.get("state") ?? "";
+      const token = authCache.take(state);
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ idToken: token }));
+      return;
+    }
     if (path === "/health") return handleHealth(req, res, pool);
     return serveStatic(req, res, PWA_DIST);
   });
