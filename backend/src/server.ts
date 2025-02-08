@@ -13,9 +13,21 @@ import { serveStatic } from "./routes/static.js";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { existsSync } from "node:fs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PWA_DIST = process.env.PWA_DIST
-  ?? join(__dirname, "..", "..", "..", "..", "mobile-pwa", "dist");
+function findPwaDist(): string {
+  if (process.env.PWA_DIST) return process.env.PWA_DIST;
+  let dir = __dirname;
+  for (let i = 0; i < 8; i++) {
+    const candidate = join(dir, "mobile-pwa", "dist");
+    if (existsSync(candidate)) return candidate;
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return join(__dirname, "..", "..", "mobile-pwa", "dist");
+}
+const PWA_DIST = findPwaDist();
 
 async function main() {
   const config = loadConfig();
