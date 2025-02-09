@@ -109,6 +109,7 @@ private struct CompactWidgetView: View {
                     Capsule(style: .continuous)
                         .stroke(Color.white.opacity(0.08), lineWidth: 1)
                 )
+                .background(DragRegion())
         )
     }
 }
@@ -168,6 +169,7 @@ private struct PairingWidgetView: View {
         .padding(8)
         .frame(width: 224, height: 258)
         .background(.ultraThinMaterial)
+        .background(DragRegion())
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 22, style: .continuous)

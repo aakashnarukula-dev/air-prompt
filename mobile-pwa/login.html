@@ -1,11 +1,102 @@
 <!DOCTYPE html>
-<html>
-  <head><meta charset="UTF-8"><title>Air Prompt — Login</title></head>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Air Prompt — Sign in</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0b0f;
+        --surface: #14141b;
+        --border: #23232e;
+        --text: #f2f2f5;
+        --muted: #8b8b96;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; height: 100%; }
+      body {
+        background: radial-gradient(1200px 600px at 50% -10%, #1a1a26 0%, var(--bg) 60%);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+      }
+      .card {
+        width: min(92vw, 360px);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 28px 24px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      p.sub {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .buttons { display: flex; flex-direction: column; gap: 10px; }
+      button {
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+        width: 100%;
+        padding: 11px 14px;
+        background: #1f1f29;
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 120ms ease, border-color 120ms ease, transform 60ms ease;
+      }
+      button:hover { background: #25252f; border-color: #2f2f3b; }
+      button:active { transform: translateY(1px); }
+      .icon { width: 16px; height: 16px; display: inline-block; }
+      #status {
+        margin-top: 18px;
+        padding: 14px;
+        border-radius: 10px;
+        background: #0f2a16;
+        border: 1px solid #1f5d35;
+        color: #86efac;
+        font-size: 13px;
+        line-height: 1.5;
+        display: none;
+      }
+      #status.error {
+        background: #2a0f10;
+        border-color: #5d1f22;
+        color: #fca5a5;
+      }
+      #status.show { display: block; }
+    </style>
+  </head>
   <body>
-    <div style="display:flex;gap:12px;flex-direction:column;padding:24px">
-      <button data-provider="google">Continue with Google</button>
-      <button data-provider="apple">Continue with Apple</button>
-      <button data-provider="github">Continue with GitHub</button>
+    <div class="card">
+      <h1>Sign in to Air Prompt</h1>
+      <p class="sub">Continue with your account. You can close this tab after.</p>
+      <div class="buttons">
+        <button data-provider="google">
+          <svg class="icon" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.3 0 6.3 1.2 8.6 3.2l6.3-6.3C35.3 3.2 30 1 24 1 14.8 1 7 6.5 3.4 14.3l7.3 5.7C12.5 13.9 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3.1-2.2 5.7-4.7 7.4l7.2 5.6c4.2-3.9 6.3-9.7 6.3-17.5z"/><path fill="#FBBC05" d="M10.7 28.2c-.5-1.6-.8-3.3-.8-5.2s.3-3.6.8-5.2l-7.3-5.7C1.8 15.3.5 19.5.5 23c0 3.5 1.3 7.7 2.9 10.9l7.3-5.7z"/><path fill="#34A853" d="M24 46c6 0 11.3-2 15.2-5.5l-7.2-5.6c-2 1.3-4.5 2.1-8 2.1-6.2 0-11.5-4.4-13.3-10.5l-7.3 5.7C7 41.5 14.8 46 24 46z"/></svg>
+          Continue with Google
+        </button>
+        <button data-provider="apple">
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 12.04c-.03-3.18 2.61-4.7 2.73-4.77-1.49-2.17-3.81-2.47-4.64-2.51-1.97-.2-3.85 1.16-4.86 1.16-1.03 0-2.57-1.14-4.22-1.11-2.17.03-4.18 1.26-5.3 3.2-2.26 3.9-.58 9.66 1.62 12.82 1.08 1.55 2.36 3.28 4.02 3.22 1.62-.07 2.23-1.04 4.19-1.04s2.51 1.04 4.22 1c1.74-.03 2.84-1.57 3.91-3.12 1.23-1.79 1.73-3.52 1.76-3.61-.04-.02-3.38-1.3-3.41-5.17zM14.02 3.3c.88-1.07 1.47-2.56 1.31-4.04-1.27.05-2.81.85-3.72 1.91-.81.94-1.52 2.45-1.33 3.9 1.42.11 2.87-.72 3.74-1.77z"/></svg>
+          Continue with Apple
+        </button>
+        <button data-provider="github">
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.67 1.24 3.33.95.1-.74.4-1.24.73-1.53-2.56-.29-5.26-1.28-5.26-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .96-.31 3.15 1.19.92-.26 1.9-.38 2.88-.39.98.01 1.96.13 2.88.39 2.19-1.5 3.15-1.19 3.15-1.19.62 1.59.23 2.76.11 3.05.73.81 1.18 1.84 1.18 3.1 0 4.44-2.7 5.41-5.28 5.69.41.36.77 1.06.77 2.13 0 1.54-.01 2.78-.01 3.16 0 .31.21.66.79.55C20.22 21.39 23.5 17.08 23.5 12 23.5 5.73 18.27.5 12 .5z"/></svg>
+          Continue with GitHub
+        </button>
+      </div>
+      <div id="status"></div>
     </div>
     <script type="module" src="/src/login.ts"></script>
   </body>
