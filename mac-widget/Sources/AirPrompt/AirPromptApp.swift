@@ -1,8 +1,24 @@
 import AppKit
 import SwiftUI
 
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        return .terminateNow
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+}
+
 @main
 struct AirPromptApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @StateObject private var store = WidgetStore()
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openWindow) private var openWindow
@@ -11,7 +27,6 @@ struct AirPromptApp: App {
         guard let image = NSImage(named: "MenuBarTemplateIcon") else {
             return nil
         }
-
         image.isTemplate = true
         return image
     }()
@@ -37,7 +52,9 @@ struct AirPromptApp: App {
             }
             Divider()
             Button("Quit") {
-                NSApplication.shared.terminate(nil)
+                NSApp.terminate(nil)
+                // Fallback if terminate is intercepted for any reason.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { exit(0) }
             }
         } label: {
             if let menuBarIcon = Self.menuBarIcon {
