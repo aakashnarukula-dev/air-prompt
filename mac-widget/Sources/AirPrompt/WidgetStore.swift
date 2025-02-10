@@ -266,11 +266,20 @@ final class WidgetStore: ObservableObject {
 
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
-        if #available(macOS 13, *) { request.requiresOnDeviceRecognition = true }
+        // Don't require on-device — falls back to Apple servers if model not downloaded.
+        if #available(macOS 13, *), recognizer.supportsOnDeviceRecognition {
+            request.requiresOnDeviceRecognition = true
+        }
         self.recognitionRequest = request
 
         let inputNode = audioEngine.inputNode
         let format = inputNode.outputFormat(forBus: 0)
+        // Guard: installTap crashes on invalid format (sample rate 0 or 0 channels).
+        guard format.sampleRate > 0, format.channelCount > 0 else {
+            state = "error"
+            liveText = "No microphone input available."
+            return
+        }
         inputNode.removeTap(onBus: 0)
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
             self?.recognitionRequest?.append(buffer)
@@ -282,6 +291,7 @@ final class WidgetStore: ObservableObject {
         } catch {
             state = "error"
             liveText = "Mic error: \(error.localizedDescription)"
+            inputNode.removeTap(onBus: 0)
             return
         }
 
