@@ -1,43 +1,20 @@
 import Foundation
-import Security
 
+// Beta storage: UserDefaults plist under ~/Library/Preferences/, user-readable only (600).
+// Not Keychain — Keychain prompts every rebuild on unsigned SwiftPM binaries.
+// Revisit after proper code signing (V2 Tauri + Apple Developer cert).
 struct TokenStore {
-    static let account = "firebase-id-token"
-    static let service = "com.airprompt.widget"
+    private static let key = "airprompt.idToken"
 
     static func save(_ token: String) {
-        let data = Data(token.utf8)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: account,
-            kSecAttrService as String: service,
-        ]
-        SecItemDelete(query as CFDictionary)
-        var insert = query
-        insert[kSecValueData as String] = data
-        SecItemAdd(insert as CFDictionary, nil)
+        UserDefaults.standard.set(token, forKey: key)
     }
 
     static func load() -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: account,
-            kSecAttrService as String: service,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne,
-        ]
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-        guard status == errSecSuccess, let data = result as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
+        UserDefaults.standard.string(forKey: key)
     }
 
     static func clear() {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: account,
-            kSecAttrService as String: service,
-        ]
-        SecItemDelete(query as CFDictionary)
+        UserDefaults.standard.removeObject(forKey: key)
     }
 }
