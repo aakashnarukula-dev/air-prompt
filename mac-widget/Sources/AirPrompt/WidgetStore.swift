@@ -222,33 +222,50 @@ final class WidgetStore: ObservableObject {
             isLoginPresented = true
             return
         }
+        // NOTE: SFSpeechRecognizer.requestAuthorization's completion is delivered
+        // on a private XPC reply queue (via tccd). Under Swift 6 strict concurrency
+        // on macOS 26, using Task { @MainActor in ... } from that queue trips
+        // _swift_task_checkIsolatedSwift and crashes with EXC_BREAKPOINT. Hop to
+        // the main thread via DispatchQueue directly and call a MainActor-isolated
+        // helper via MainActor.assumeIsolated to avoid the task-isolation check.
         SFSpeechRecognizer.requestAuthorization { [weak self] status in
-            Task { @MainActor in
-                guard let self else { return }
-                guard status == .authorized else {
-                    self.micPermissionDenied = true
-                    self.liveText = "Enable Speech Recognition in System Settings > Privacy."
-                    return
-                }
-                switch AVCaptureDevice.authorizationStatus(for: .audio) {
-                case .authorized:
-                    self.beginRecognition()
-                case .notDetermined:
-                    AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
-                        Task { @MainActor in
-                            guard let self else { return }
-                            if granted { self.beginRecognition() }
-                            else {
-                                self.micPermissionDenied = true
-                                self.liveText = "Enable mic in System Settings > Privacy."
-                            }
-                        }
-                    }
-                default:
-                    self.micPermissionDenied = true
-                    self.liveText = "Enable mic in System Settings > Privacy."
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                    self?.handleSpeechAuth(status: status)
                 }
             }
+        }
+    }
+
+    private func handleSpeechAuth(status: SFSpeechRecognizerAuthorizationStatus) {
+        guard status == .authorized else {
+            self.micPermissionDenied = true
+            self.liveText = "Enable Speech Recognition in System Settings > Privacy."
+            return
+        }
+        switch AVCaptureDevice.authorizationStatus(for: .audio) {
+        case .authorized:
+            self.beginRecognition()
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
+                DispatchQueue.main.async {
+                    MainActor.assumeIsolated {
+                        self?.handleMicAuth(granted: granted)
+                    }
+                }
+            }
+        default:
+            self.micPermissionDenied = true
+            self.liveText = "Enable mic in System Settings > Privacy."
+        }
+    }
+
+    private func handleMicAuth(granted: Bool) {
+        if granted {
+            self.beginRecognition()
+        } else {
+            self.micPermissionDenied = true
+            self.liveText = "Enable mic in System Settings > Privacy."
         }
     }
 
@@ -300,16 +317,23 @@ final class WidgetStore: ObservableObject {
         liveText = "Listening…"
 
         recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
-            guard let self = self else { return }
-            if let result = result {
-                let text = result.bestTranscription.formattedString
-                Task { @MainActor in self.liveText = text }
-                if result.isFinal {
-                    Task { @MainActor in self.sendTranscript(text: text) }
+            // Same XPC-queue caveat as above — hop via DispatchQueue, not Task.
+            let text = result?.bestTranscription.formattedString
+            let isFinal = result?.isFinal ?? false
+            let hadError = error != nil
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                    guard let self = self else { return }
+                    if let text = text {
+                        self.liveText = text
+                        if isFinal {
+                            self.sendTranscript(text: text)
+                        }
+                    }
+                    if hadError || isFinal {
+                        self.finalizeRecording()
+                    }
                 }
-            }
-            if error != nil || (result?.isFinal ?? false) {
-                Task { @MainActor in self.finalizeRecording() }
             }
         }
     }
