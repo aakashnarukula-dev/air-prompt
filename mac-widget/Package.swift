@@ -13,6 +13,12 @@ let package = Package(
             name: "AirPrompt",
             path: "Sources/AirPrompt",
             exclude: ["Info.plist"],
+            swiftSettings: [
+                // Swift 5 language mode: disables the Swift 6 strict-isolation
+                // runtime checks that trap on legacy @Sendable callbacks
+                // (SFSpeechRecognizer, AVCaptureDevice, URLSession via tccd XPC).
+                .swiftLanguageMode(.v5)
+            ],
             linkerSettings: [
                 .unsafeFlags([
                     "-Xlinker", "-sectcreate",

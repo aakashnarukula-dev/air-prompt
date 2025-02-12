@@ -222,17 +222,29 @@ final class WidgetStore: ObservableObject {
             isLoginPresented = true
             return
         }
-        // NOTE: SFSpeechRecognizer.requestAuthorization's completion is delivered
-        // on a private XPC reply queue (via tccd). Under Swift 6 strict concurrency
-        // on macOS 26, using Task { @MainActor in ... } from that queue trips
-        // _swift_task_checkIsolatedSwift and crashes with EXC_BREAKPOINT. Hop to
-        // the main thread via DispatchQueue directly and call a MainActor-isolated
-        // helper via MainActor.assumeIsolated to avoid the task-isolation check.
-        SFSpeechRecognizer.requestAuthorization { [weak self] status in
-            DispatchQueue.main.async {
-                MainActor.assumeIsolated {
-                    self?.handleSpeechAuth(status: status)
-                }
+        // Swift 6 fix: SFSpeechRecognizer/AVCaptureDevice callbacks fire on tccd's
+        // private XPC queue. Any capture of @MainActor self there trips the isolation
+        // checker (_swift_task_checkIsolatedSwift → dispatch_assert_queue fail).
+        // Wrap in nonisolated async helpers + withCheckedContinuation; the awaiting
+        // Task runs on @MainActor, so results land on main with no manual hop.
+        Task { @MainActor in
+            let status = await Self.requestSpeechAuth()
+            self.handleSpeechAuth(status: status)
+        }
+    }
+
+    private nonisolated static func requestSpeechAuth() async -> SFSpeechRecognizerAuthorizationStatus {
+        await withCheckedContinuation { cont in
+            SFSpeechRecognizer.requestAuthorization { status in
+                cont.resume(returning: status)
+            }
+        }
+    }
+
+    private nonisolated static func requestMicAccess() async -> Bool {
+        await withCheckedContinuation { cont in
+            AVCaptureDevice.requestAccess(for: .audio) { granted in
+                cont.resume(returning: granted)
             }
         }
     }
@@ -247,12 +259,9 @@ final class WidgetStore: ObservableObject {
         case .authorized:
             self.beginRecognition()
         case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
-                DispatchQueue.main.async {
-                    MainActor.assumeIsolated {
-                        self?.handleMicAuth(granted: granted)
-                    }
-                }
+            Task { @MainActor in
+                let granted = await Self.requestMicAccess()
+                self.handleMicAuth(granted: granted)
             }
         default:
             self.micPermissionDenied = true
