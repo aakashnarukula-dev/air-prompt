@@ -216,19 +216,17 @@ final class WidgetStore: ObservableObject {
     }
 
     func startRecording() {
+        NSLog("AirPrompt: startRecording called")
         showQRCode = false
         guard idToken != nil else {
+            NSLog("AirPrompt: no idToken, showing login")
             state = "needs_login"
             isLoginPresented = true
             return
         }
-        // Swift 6 fix: SFSpeechRecognizer/AVCaptureDevice callbacks fire on tccd's
-        // private XPC queue. Any capture of @MainActor self there trips the isolation
-        // checker (_swift_task_checkIsolatedSwift → dispatch_assert_queue fail).
-        // Wrap in nonisolated async helpers + withCheckedContinuation; the awaiting
-        // Task runs on @MainActor, so results land on main with no manual hop.
         Task { @MainActor in
             let status = await Self.requestSpeechAuth()
+            NSLog("AirPrompt: speech auth status = \(status.rawValue)")
             self.handleSpeechAuth(status: status)
         }
     }
@@ -279,8 +277,10 @@ final class WidgetStore: ObservableObject {
     }
 
     private func beginRecognition() {
+        NSLog("AirPrompt: beginRecognition")
         let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
         guard let recognizer, recognizer.isAvailable else {
+            NSLog("AirPrompt: recognizer unavailable")
             state = "error"
             liveText = "Speech recognizer unavailable."
             return
@@ -326,20 +326,24 @@ final class WidgetStore: ObservableObject {
         liveText = "Listening…"
 
         recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
-            // Same XPC-queue caveat as above — hop via DispatchQueue, not Task.
             let text = result?.bestTranscription.formattedString
             let isFinal = result?.isFinal ?? false
-            let hadError = error != nil
+            let errMsg = error?.localizedDescription
             DispatchQueue.main.async {
                 MainActor.assumeIsolated {
                     guard let self = self else { return }
-                    if let text = text {
+                    if let text = text, !text.isEmpty {
                         self.liveText = text
                         if isFinal {
                             self.sendTranscript(text: text)
+                            self.lastText = text
                         }
                     }
-                    if hadError || isFinal {
+                    if let errMsg = errMsg {
+                        NSLog("AirPrompt speech error: \(errMsg)")
+                        self.liveText = "Speech error: \(errMsg)"
+                        self.finalizeRecording()
+                    } else if isFinal {
                         self.finalizeRecording()
                     }
                 }
@@ -356,11 +360,17 @@ final class WidgetStore: ObservableObject {
     }
 
     private func finalizeRecording() {
+        if audioEngine.isRunning {
+            audioEngine.stop()
+        }
         audioEngine.inputNode.removeTap(onBus: 0)
+        recognitionRequest?.endAudio()
         recognitionRequest = nil
+        recognitionTask?.finish()
         recognitionTask = nil
         isRecording = false
         if state == "receiving" { state = "idle" }
+        NSLog("AirPrompt: recording finalized")
     }
 
     private func sendTranscript(text: String) {
