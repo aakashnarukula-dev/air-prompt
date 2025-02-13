@@ -208,6 +208,8 @@ final class WidgetStore: ObservableObject {
     }
 
     func toggleRecording() {
+        Self.log("toggleRecording called, isRecording=\(isRecording), idToken=\(idToken == nil ? "nil" : "present")")
+        liveText = "mic clicked: \(Date().timeIntervalSince1970)"
         if isRecording {
             stopRecording()
         } else {
@@ -215,18 +217,31 @@ final class WidgetStore: ObservableObject {
         }
     }
 
+    private static func log(_ msg: String) {
+        let line = "\(Date()) \(msg)\n"
+        if let data = line.data(using: .utf8) {
+            if let handle = try? FileHandle(forWritingTo: URL(fileURLWithPath: "/tmp/airprompt.log")) {
+                handle.seekToEndOfFile()
+                handle.write(data)
+                try? handle.close()
+            } else {
+                try? data.write(to: URL(fileURLWithPath: "/tmp/airprompt.log"))
+            }
+        }
+    }
+
     func startRecording() {
-        NSLog("AirPrompt: startRecording called")
+        Self.log("startRecording called")
         showQRCode = false
         guard idToken != nil else {
-            NSLog("AirPrompt: no idToken, showing login")
+            Self.log("no idToken, showing login")
             state = "needs_login"
             isLoginPresented = true
             return
         }
         Task { @MainActor in
             let status = await Self.requestSpeechAuth()
-            NSLog("AirPrompt: speech auth status = \(status.rawValue)")
+            Self.log("speech auth status = \(status.rawValue)")
             self.handleSpeechAuth(status: status)
         }
     }
@@ -277,12 +292,20 @@ final class WidgetStore: ObservableObject {
     }
 
     private func beginRecognition() {
-        NSLog("AirPrompt: beginRecognition")
-        let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
-        guard let recognizer, recognizer.isAvailable else {
-            NSLog("AirPrompt: recognizer unavailable")
+        Self.log("beginRecognition")
+        // Try current locale first (handles en-IN, etc.), fall back to en-US.
+        let recognizer = SFSpeechRecognizer(locale: Locale.current) ?? SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
+        guard let recognizer else {
+            Self.log("recognizer nil for locale \(Locale.current.identifier)")
             state = "error"
-            liveText = "Speech recognizer unavailable."
+            liveText = "Speech recognizer unavailable for your locale."
+            return
+        }
+        Self.log("recognizer locale=\(recognizer.locale.identifier) available=\(recognizer.isAvailable) onDevice=\(recognizer.supportsOnDeviceRecognition)")
+        guard recognizer.isAvailable else {
+            Self.log("recognizer unavailable — dictation likely disabled")
+            state = "error"
+            liveText = "Enable Dictation in System Settings > Keyboard, then try again."
             return
         }
         self.speechRecognizer = recognizer
@@ -292,10 +315,9 @@ final class WidgetStore: ObservableObject {
 
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
-        // Don't require on-device — falls back to Apple servers if model not downloaded.
-        if #available(macOS 13, *), recognizer.supportsOnDeviceRecognition {
-            request.requiresOnDeviceRecognition = true
-        }
+        request.taskHint = .dictation
+        // Let Apple pick on-device vs server. Forcing on-device fails if the model
+        // isn't downloaded for the user's locale.
         self.recognitionRequest = request
 
         let inputNode = audioEngine.inputNode
@@ -307,7 +329,12 @@ final class WidgetStore: ObservableObject {
             return
         }
         inputNode.removeTap(onBus: 0)
+        var tapBufferCount = 0
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
+            tapBufferCount += 1
+            if tapBufferCount == 1 || tapBufferCount % 50 == 0 {
+                Self.log("tap buffer #\(tapBufferCount), frames=\(buffer.frameLength)")
+            }
             self?.recognitionRequest?.append(buffer)
         }
 
@@ -329,6 +356,22 @@ final class WidgetStore: ObservableObject {
             let text = result?.bestTranscription.formattedString
             let isFinal = result?.isFinal ?? false
             let errMsg = error?.localizedDescription
+            let errDomain = (error as NSError?)?.domain ?? ""
+            let errCode = (error as NSError?)?.code ?? 0
+            Self.log("recognitionTask callback: text=\(text ?? "nil"), isFinal=\(isFinal), err=\(errMsg ?? "nil") [\(errDomain) \(errCode)]")
+            // Map common errors to actionable UI strings.
+            let uiError: String? = {
+                guard let error = error as NSError? else { return nil }
+                // kLSRErrorDomain 201 = "Siri and Dictation are disabled"
+                if error.domain == "kLSRErrorDomain" && error.code == 201 {
+                    return "Enable Dictation in System Settings > Keyboard > Dictation, then try again."
+                }
+                // kAFAssistantErrorDomain 1700/1101 = speech service unreachable
+                if error.domain == "kAFAssistantErrorDomain" && (error.code == 1700 || error.code == 1101) {
+                    return "Speech service unreachable. Check your internet or enable Dictation."
+                }
+                return "Speech error: \(error.localizedDescription)"
+            }()
             DispatchQueue.main.async {
                 MainActor.assumeIsolated {
                     guard let self = self else { return }
@@ -339,16 +382,17 @@ final class WidgetStore: ObservableObject {
                             self.lastText = text
                         }
                     }
-                    if let errMsg = errMsg {
-                        NSLog("AirPrompt speech error: \(errMsg)")
-                        self.liveText = "Speech error: \(errMsg)"
+                    if let uiError = uiError {
+                        self.liveText = uiError
                         self.finalizeRecording()
                     } else if isFinal {
                         self.finalizeRecording()
                     }
+                    _ = errMsg; _ = errDomain; _ = errCode
                 }
             }
         }
+        Self.log("recognitionTask installed, audioEngine.isRunning=\(audioEngine.isRunning), format=\(format)")
     }
 
     func stopRecording() {
@@ -370,7 +414,7 @@ final class WidgetStore: ObservableObject {
         recognitionTask = nil
         isRecording = false
         if state == "receiving" { state = "idle" }
-        NSLog("AirPrompt: recording finalized")
+        Self.log("recording finalized")
     }
 
     private func sendTranscript(text: String) {
