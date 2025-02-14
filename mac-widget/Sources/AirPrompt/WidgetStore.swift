@@ -209,13 +209,20 @@ final class WidgetStore: ObservableObject {
 
     func toggleRecording() {
         Self.log("toggleRecording called, isRecording=\(isRecording), idToken=\(idToken == nil ? "nil" : "present")")
-        liveText = "mic clicked: \(Date().timeIntervalSince1970)"
         if isRecording {
             stopRecording()
         } else {
+            // Capture the frontmost non-widget app so we can restore focus before paste.
+            if let front = NSWorkspace.shared.frontmostApplication,
+               front.bundleIdentifier != "com.airprompt.widget" {
+                previousApp = front
+                Self.log("captured previousApp: \(front.bundleIdentifier ?? "?")")
+            }
             startRecording()
         }
     }
+
+    private var previousApp: NSRunningApplication?
 
     private static func log(_ msg: String) {
         let line = "\(Date()) \(msg)\n"
@@ -526,15 +533,21 @@ final class WidgetStore: ObservableObject {
     }
 
     private func attemptPaste() -> Bool {
-        // If trusted, always fire Cmd+V — don't over-check focusedTextInput which
-        // misses contenteditable/web views/custom editors.
-        if AccessibilityService.shared.isTrusted() {
-            return AccessibilityService.shared.paste()
+        let trusted = AccessibilityService.shared.isTrusted()
+        Self.log("attemptPaste: AXtrusted=\(trusted), previousApp=\(previousApp?.bundleIdentifier ?? "nil")")
+        if !trusted {
+            _ = AccessibilityService.shared.requestIfNeeded()
+            return false
         }
-        // Not trusted yet — trigger the macOS Accessibility prompt.
-        _ = AccessibilityService.shared.requestIfNeeded()
-        Self.log("accessibility not trusted — user must grant in System Settings > Privacy & Security > Accessibility")
-        return false
+        // Bring the user's previous app back to front so Cmd+V goes there, not the widget.
+        if let app = previousApp {
+            app.activate(options: [])
+        }
+        // Wait a beat for focus to switch, then paste.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            _ = AccessibilityService.shared.paste()
+        }
+        return true
     }
 
 }
