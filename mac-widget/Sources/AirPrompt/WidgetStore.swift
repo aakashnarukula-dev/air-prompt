@@ -526,13 +526,15 @@ final class WidgetStore: ObservableObject {
     }
 
     private func attemptPaste() -> Bool {
+        // If trusted, always fire Cmd+V — don't over-check focusedTextInput which
+        // misses contenteditable/web views/custom editors.
         if AccessibilityService.shared.isTrusted() {
-            return AccessibilityService.shared.focusedTextInput() ? AccessibilityService.shared.paste() : false
+            return AccessibilityService.shared.paste()
         }
+        // Not trusted yet — trigger the macOS Accessibility prompt.
         _ = AccessibilityService.shared.requestIfNeeded()
-        return AccessibilityService.shared.isTrusted() && AccessibilityService.shared.focusedTextInput()
-            ? AccessibilityService.shared.paste()
-            : false
+        Self.log("accessibility not trusted — user must grant in System Settings > Privacy & Security > Accessibility")
+        return false
     }
 
 }
