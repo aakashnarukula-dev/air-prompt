@@ -173,6 +173,28 @@ final class WidgetStore: ObservableObject {
 
         state = "idle"
         receive()
+        startKeepalive()
+    }
+
+    private var keepaliveTimer: Timer?
+
+    private func startKeepalive() {
+        keepaliveTimer?.invalidate()
+        keepaliveTimer = Timer.scheduledTimer(withTimeInterval: 25.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self = self else { return }
+                if self.socket?.state == .running {
+                    let ping: [String: Any] = ["type": "ping", "protocolVersion": "2", "ts": Int(Date().timeIntervalSince1970 * 1000)]
+                    if let data = try? JSONSerialization.data(withJSONObject: ping),
+                       let str = String(data: data, encoding: .utf8) {
+                        self.socket?.send(.string(str)) { _ in }
+                    }
+                } else {
+                    Self.log("keepalive: socket dead, reconnecting")
+                    self.connect()
+                }
+            }
+        }
     }
 
     func pasteLast() {
@@ -436,10 +458,23 @@ final class WidgetStore: ObservableObject {
             "seq": currentSeq
         ]
         Self.log("sendTranscript seq=\(currentSeq) len=\(trimmed.count) socketState=\(socket?.state.rawValue ?? -1)")
-        // Also immediately copy the RAW transcript to clipboard as a fallback,
-        // in case backend doesn't return a cleaned 'final' quickly.
+        // Always copy raw transcript to clipboard immediately.
         AccessibilityService.shared.copy(trimmed)
         self.lastText = trimmed
+
+        // If WS is dead (state != .running == 0), reconnect then retry send.
+        if socket?.state != .running {
+            Self.log("socket dead, reconnecting before send")
+            connect()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.rawSendTranscript(msg: msg)
+            }
+            return
+        }
+        rawSendTranscript(msg: msg)
+    }
+
+    private func rawSendTranscript(msg: [String: Any]) {
         if let data = try? JSONSerialization.data(withJSONObject: msg),
            let str = String(data: data, encoding: .utf8) {
             socket?.send(.string(str)) { err in
