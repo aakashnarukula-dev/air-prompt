@@ -435,9 +435,18 @@ final class WidgetStore: ObservableObject {
             "mode": "prompt",
             "seq": currentSeq
         ]
+        Self.log("sendTranscript seq=\(currentSeq) len=\(trimmed.count) socketState=\(socket?.state.rawValue ?? -1)")
+        // Also immediately copy the RAW transcript to clipboard as a fallback,
+        // in case backend doesn't return a cleaned 'final' quickly.
+        AccessibilityService.shared.copy(trimmed)
+        self.lastText = trimmed
         if let data = try? JSONSerialization.data(withJSONObject: msg),
            let str = String(data: data, encoding: .utf8) {
-            socket?.send(.string(str)) { _ in }
+            socket?.send(.string(str)) { err in
+                if let err = err {
+                    Self.log("sendTranscript error: \(err.localizedDescription)")
+                }
+            }
         }
     }
 
@@ -459,6 +468,7 @@ final class WidgetStore: ObservableObject {
     }
 
     private func handle(text: String) {
+        Self.log("WS recv: \(text.prefix(200))")
         guard let data = text.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let type = json["type"] as? String else { return }
@@ -508,6 +518,7 @@ final class WidgetStore: ObservableObject {
         case "final":
             let value = json["text"] as? String ?? ""
             let replayed = json["replayed"] as? Bool ?? false
+            Self.log("final handler: text=\(value.prefix(80)), replayed=\(replayed)")
             if replayed {
                 self.lastText = value
                 self.state = "ready"
@@ -516,6 +527,7 @@ final class WidgetStore: ObservableObject {
                 self.lastText = value
                 self.showQRCode = false
                 AccessibilityService.shared.copy(value)
+                Self.log("clipboard now contains: \(NSPasteboard.general.string(forType: .string)?.prefix(80) ?? "?")")
                 self.state = attemptPaste() ? "ready" : "clipboard"
             }
             if let deliveryId = json["deliveryId"] as? String {
