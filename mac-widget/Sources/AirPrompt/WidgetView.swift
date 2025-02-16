@@ -30,74 +30,11 @@ private struct CompactWidgetView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            BeatView(active: isReceiving || store.isRecording)
-
-            Spacer()
-
-            // Mic toggle
-            Button {
-                store.toggleRecording()
-            } label: {
-                Image(systemName: store.isRecording ? "mic.fill" : "mic")
-                    .font(.system(size: 14, weight: .semibold))
-                    .frame(width: 28, height: 28)
+            if store.idToken == nil {
+                signedOutContent
+            } else {
+                signedInContent
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(store.isRecording ? Color.red : .white)
-
-            // Copy last transcript
-            Button {
-                store.pasteLast()
-            } label: {
-                Image(systemName: "document.on.clipboard")
-                    .font(.system(size: 14, weight: .semibold))
-                    .frame(width: 28, height: 28)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(store.lastText.isEmpty ? .white.opacity(0.3) : .white)
-            .disabled(store.lastText.isEmpty)
-
-            // Show QR pairing screen
-            Button {
-                store.toggleQRCode()
-            } label: {
-                Image(systemName: "qrcode")
-                    .font(.system(size: 14, weight: .semibold))
-                    .frame(width: 28, height: 28)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.white)
-
-            // Sign in / Sign out
-            Button {
-                if store.idToken == nil {
-                    store.beginLogin()
-                } else {
-                    store.signOut()
-                }
-            } label: {
-                Image(systemName: store.idToken == nil ? "person.crop.circle.badge.plus" : "person.crop.circle.badge.checkmark")
-                    .font(.system(size: 14, weight: .semibold))
-                    .frame(width: 28, height: 28)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(store.idToken == nil ? .white.opacity(0.55) : .white)
-
-            // Close demo (macOS-style red close)
-            Button {
-                store.stopDemo()
-            } label: {
-                ZStack {
-                    Circle()
-                        .fill(Color(red: 1.0, green: 0.37, blue: 0.36))
-                        .frame(width: 16, height: 16)
-                    Image(systemName: "xmark")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(.white)
-                }
-                .frame(width: 28, height: 28)
-            }
-            .buttonStyle(.plain)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
@@ -109,8 +46,91 @@ private struct CompactWidgetView: View {
                     Capsule(style: .continuous)
                         .stroke(Color.white.opacity(0.08), lineWidth: 1)
                 )
-                .background(DragRegion())
+                // .background(DragRegion())  // TEMP disabled — may eat button clicks
         )
+    }
+
+    @ViewBuilder
+    private var signedOutContent: some View {
+        BeatView(active: false)
+        Spacer()
+        Button { store.beginLogin() } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "person.crop.circle.badge.plus")
+                    .font(.system(size: 13, weight: .semibold))
+                Text("Sign in")
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+            .background(Capsule().fill(Color.white.opacity(0.10)))
+            .foregroundStyle(.white)
+        }
+        .buttonStyle(.plain)
+
+        Button { store.stopDemo() } label: {
+            ZStack {
+                Circle()
+                    .fill(Color(red: 1.0, green: 0.37, blue: 0.36))
+                    .frame(width: 16, height: 16)
+                Image(systemName: "xmark")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+            .frame(width: 28, height: 28)
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private var signedInContent: some View {
+        BeatView(active: isReceiving || store.isRecording)
+        Spacer()
+        Button { store.toggleRecording() } label: {
+            Image(systemName: store.isRecording ? "mic.fill" : "mic")
+                .font(.system(size: 14, weight: .semibold))
+                .frame(width: 28, height: 28)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(store.isRecording ? Color.red : .white)
+
+        Button { store.pasteLast() } label: {
+            Image(systemName: "document.on.clipboard")
+                .font(.system(size: 14, weight: .semibold))
+                .frame(width: 28, height: 28)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(store.lastText.isEmpty ? .white.opacity(0.3) : .white)
+        .disabled(store.lastText.isEmpty)
+
+        Button { store.toggleQRCode() } label: {
+            Image(systemName: "qrcode")
+                .font(.system(size: 14, weight: .semibold))
+                .frame(width: 28, height: 28)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.white)
+
+        Button { store.signOut() } label: {
+            Image(systemName: "person.crop.circle.badge.checkmark")
+                .font(.system(size: 14, weight: .semibold))
+                .frame(width: 28, height: 28)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.white)
+
+        Button { store.stopDemo() } label: {
+            ZStack {
+                Circle()
+                    .fill(Color(red: 1.0, green: 0.37, blue: 0.36))
+                    .frame(width: 16, height: 16)
+                Image(systemName: "xmark")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+            .frame(width: 28, height: 28)
+        }
+        .buttonStyle(.plain)
     }
 }
 
