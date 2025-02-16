@@ -147,7 +147,8 @@ final class WidgetStore: ObservableObject {
             joinURL = mobileBase
         }
         let wsBase = backendBase.replacingOccurrences(of: "http", with: "ws", options: .anchored, range: nil)
-        guard let url = URL(string: wsBase) else { return }
+        guard let url = URL(string: "\(wsBase)/ws") else { return }
+        Self.log("connecting to \(url.absoluteString)")
         socket?.cancel()
         socket = URLSession.shared.webSocketTask(with: url)
         socket?.resume()
@@ -491,7 +492,12 @@ final class WidgetStore: ObservableObject {
                 guard let self else { return }
                 switch result {
                 case .failure:
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { self.connect() }
+                    // Only auto-reconnect if we still have a token — otherwise the loop hammers the server.
+                    if self.idToken != nil {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                            if self.idToken != nil { self.connect() }
+                        }
+                    }
                 case .success(let message):
                     if case let .string(text) = message {
                         self.handle(text: text)
@@ -549,7 +555,19 @@ final class WidgetStore: ObservableObject {
             self.showQRCode = false
         case "error":
             self.state = "error"
-            self.liveText = json["message"] as? String ?? self.liveText
+            let message = json["message"] as? String ?? ""
+            let code = json["code"] as? String ?? ""
+            self.liveText = message.isEmpty ? self.liveText : message
+            if code == "unauthenticated" {
+                Self.log("auth rejected by server — signing out + prompting login")
+                self.socket?.cancel()
+                self.socket = nil
+                self.keepaliveTimer?.invalidate()
+                self.keepaliveTimer = nil
+                TokenStore.clear()
+                self.idToken = nil
+                self.isLoginPresented = true
+            }
         case "final":
             let value = json["text"] as? String ?? ""
             let replayed = json["replayed"] as? Bool ?? false
