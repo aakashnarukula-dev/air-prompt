@@ -52,7 +52,6 @@ private struct CompactWidgetView: View {
 
     @ViewBuilder
     private var signedOutContent: some View {
-        Spacer()
         Button { store.beginLogin() } label: {
             HStack(spacing: 6) {
                 Image(systemName: "person.crop.circle.badge.plus")
@@ -60,14 +59,12 @@ private struct CompactWidgetView: View {
                 Text("Sign in")
                     .font(.system(size: 12, weight: .medium, design: .rounded))
             }
-            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity)
             .padding(.vertical, 5)
             .background(Capsule().fill(Color.white.opacity(0.10)))
             .foregroundStyle(.white)
         }
         .buttonStyle(.plain)
-
-        Spacer()
 
         Button { store.stopDemo() } label: {
             ZStack {
