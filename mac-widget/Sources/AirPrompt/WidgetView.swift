@@ -52,7 +52,6 @@ private struct CompactWidgetView: View {
 
     @ViewBuilder
     private var signedOutContent: some View {
-        BeatView(active: false)
         Spacer()
         Button { store.beginLogin() } label: {
             HStack(spacing: 6) {
@@ -67,6 +66,8 @@ private struct CompactWidgetView: View {
             .foregroundStyle(.white)
         }
         .buttonStyle(.plain)
+
+        Spacer()
 
         Button { store.stopDemo() } label: {
             ZStack {
