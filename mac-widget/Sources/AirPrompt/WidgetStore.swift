@@ -106,10 +106,10 @@ final class WidgetStore: ObservableObject {
     func bootstrap() {
         let mobileBase = config?.mobileURL
             ?? ProcessInfo.processInfo.environment["AIR_PROMPT_MOBILE_URL"]
-            ?? "http://\(ProcessInfo.processInfo.hostName):5173"
+            ?? "http://localhost:5173"
         currentBackendBase = config?.backendURL
             ?? ProcessInfo.processInfo.environment["AIR_PROMPT_BACKEND_URL"]
-            ?? "http://\(ProcessInfo.processInfo.hostName):8787"
+            ?? "http://localhost:8787"
         showQRCode = false
         mobileConnected = false
         liveText = Self.defaultPrompt
@@ -135,7 +135,7 @@ final class WidgetStore: ObservableObject {
         config = AppConfigLoader.load()
         let backendBase = config?.backendURL
             ?? ProcessInfo.processInfo.environment["AIR_PROMPT_BACKEND_URL"]
-            ?? "http://\(ProcessInfo.processInfo.hostName):8787"
+            ?? "http://localhost:8787"
         currentBackendBase = backendBase
         // Refresh joinURL from config only if the current one is a localhost
         // placeholder (i.e. we never got a real public URL). This prevents a
@@ -143,7 +143,7 @@ final class WidgetStore: ObservableObject {
         if joinURL.contains("localhost") || joinURL.isEmpty {
             let mobileBase = config?.mobileURL
                 ?? ProcessInfo.processInfo.environment["AIR_PROMPT_MOBILE_URL"]
-                ?? "http://\(ProcessInfo.processInfo.hostName):5173"
+                ?? "http://localhost:5173"
             joinURL = mobileBase
         }
         let wsBase = backendBase.replacingOccurrences(of: "http", with: "ws", options: .anchored, range: nil)
