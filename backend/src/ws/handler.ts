@@ -30,7 +30,13 @@ export interface HandlerDeps {
 export function attachHandler(socket: WebSocket, deps: HandlerDeps) {
   const ctx: ConnCtx = { socket };
 
-  socket.on("message", async (raw: Buffer) => {
+  // Serialize message handling so that an async `hello` completes before the
+  // next message (e.g. create_session) is processed. Otherwise Node's `ws`
+  // fires message events concurrently and create_session can race ahead of
+  // hello's `verify()` await, producing a spurious "say hello first" error.
+  let chain: Promise<void> = Promise.resolve();
+
+  const handleOne = async (raw: Buffer): Promise<void> => {
     const parsed = parseClientMessage(raw);
     if (!parsed.ok) {
       send(socket, { type: "error", protocolVersion: PROTOCOL_VERSION, code: parsed.code, message: parsed.message });
@@ -139,6 +145,10 @@ export function attachHandler(socket: WebSocket, deps: HandlerDeps) {
         send(socket, { type: "pong", protocolVersion: PROTOCOL_VERSION, ts: msg.ts });
         break;
     }
+  };
+
+  socket.on("message", (raw: Buffer) => {
+    chain = chain.then(() => handleOne(raw)).catch(() => {});
   });
 
   socket.on("close", () => {
