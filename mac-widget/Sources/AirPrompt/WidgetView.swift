@@ -5,7 +5,7 @@ struct WidgetView: View {
     @EnvironmentObject private var store: WidgetStore
 
     private var windowSize: CGSize {
-        store.showQRCode ? CGSize(width: 224, height: 258) : CGSize(width: 252, height: 52)
+        store.showQRCode ? CGSize(width: 224, height: 258) : CGSize(width: 296, height: 52)
     }
 
     var body: some View {
@@ -38,7 +38,7 @@ private struct CompactWidgetView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .frame(width: 252)
+        .frame(width: 296)
         .background(
             Capsule(style: .continuous)
                 .fill(.ultraThinMaterial)
