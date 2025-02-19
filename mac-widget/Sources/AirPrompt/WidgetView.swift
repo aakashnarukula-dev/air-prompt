@@ -83,7 +83,8 @@ private struct CompactWidgetView: View {
     @ViewBuilder
     private var signedInContent: some View {
         BeatView(active: isReceiving || store.isRecording)
-        Spacer()
+            .frame(maxWidth: .infinity)
+
         Button { store.toggleRecording() } label: {
             Image(systemName: store.isRecording ? "mic.fill" : "mic")
                 .font(.system(size: 14, weight: .semibold))
@@ -91,6 +92,7 @@ private struct CompactWidgetView: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(store.isRecording ? Color.red : .white)
+        .frame(maxWidth: .infinity)
 
         Button { store.pasteLast() } label: {
             Image(systemName: "document.on.clipboard")
@@ -100,6 +102,7 @@ private struct CompactWidgetView: View {
         .buttonStyle(.plain)
         .foregroundStyle(store.lastText.isEmpty ? .white.opacity(0.3) : .white)
         .disabled(store.lastText.isEmpty)
+        .frame(maxWidth: .infinity)
 
         Button { store.toggleQRCode() } label: {
             Image(systemName: "qrcode")
@@ -108,6 +111,7 @@ private struct CompactWidgetView: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(.white)
+        .frame(maxWidth: .infinity)
 
         Button { store.signOut() } label: {
             Image(systemName: "person.crop.circle.badge.checkmark")
@@ -116,6 +120,7 @@ private struct CompactWidgetView: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(.white)
+        .frame(maxWidth: .infinity)
 
         Button { store.stopDemo() } label: {
             ZStack {
