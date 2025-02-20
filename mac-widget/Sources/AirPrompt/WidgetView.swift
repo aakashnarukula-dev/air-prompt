@@ -109,7 +109,7 @@ private struct CompactWidgetView: View {
         .foregroundStyle(.white)
 
         Button { store.signOut() } label: {
-            Image(systemName: "person.crop.circle.badge.checkmark")
+            Image(systemName: "rectangle.portrait.and.arrow.right")
                 .font(.system(size: 14, weight: .semibold))
                 .frame(width: 28, height: 28)
         }
