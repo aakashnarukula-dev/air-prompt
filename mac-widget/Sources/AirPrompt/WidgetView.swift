@@ -5,7 +5,7 @@ struct WidgetView: View {
     @EnvironmentObject private var store: WidgetStore
 
     private var windowSize: CGSize {
-        store.showQRCode ? CGSize(width: 224, height: 258) : CGSize(width: 296, height: 52)
+        store.showQRCode ? CGSize(width: 224, height: 258) : CGSize(width: 260, height: 52)
     }
 
     var body: some View {
@@ -38,7 +38,7 @@ private struct CompactWidgetView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .frame(width: 296)
+        .frame(width: 260)
         .background(
             Capsule(style: .continuous)
                 .fill(.ultraThinMaterial)
@@ -59,8 +59,7 @@ private struct CompactWidgetView: View {
                 Text("Sign in")
                     .font(.system(size: 12, weight: .medium, design: .rounded))
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 5)
+                .padding(.vertical, 5)
             .background(Capsule().fill(Color.white.opacity(0.10)))
             .foregroundStyle(.white)
         }
@@ -83,8 +82,7 @@ private struct CompactWidgetView: View {
     @ViewBuilder
     private var signedInContent: some View {
         BeatView(active: isReceiving || store.isRecording)
-            .frame(maxWidth: .infinity)
-
+    
         Button { store.toggleRecording() } label: {
             Image(systemName: store.isRecording ? "mic.fill" : "mic")
                 .font(.system(size: 14, weight: .semibold))
@@ -92,7 +90,6 @@ private struct CompactWidgetView: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(store.isRecording ? Color.red : .white)
-        .frame(maxWidth: .infinity)
 
         Button { store.pasteLast() } label: {
             Image(systemName: "document.on.clipboard")
@@ -102,7 +99,6 @@ private struct CompactWidgetView: View {
         .buttonStyle(.plain)
         .foregroundStyle(store.lastText.isEmpty ? .white.opacity(0.3) : .white)
         .disabled(store.lastText.isEmpty)
-        .frame(maxWidth: .infinity)
 
         Button { store.toggleQRCode() } label: {
             Image(systemName: "qrcode")
@@ -111,7 +107,6 @@ private struct CompactWidgetView: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(.white)
-        .frame(maxWidth: .infinity)
 
         Button { store.signOut() } label: {
             Image(systemName: "person.crop.circle.badge.checkmark")
@@ -120,7 +115,6 @@ private struct CompactWidgetView: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(.white)
-        .frame(maxWidth: .infinity)
 
         Button { store.stopDemo() } label: {
             ZStack {
