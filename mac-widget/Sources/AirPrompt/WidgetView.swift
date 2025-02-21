@@ -5,7 +5,9 @@ struct WidgetView: View {
     @EnvironmentObject private var store: WidgetStore
 
     private var windowSize: CGSize {
-        store.showQRCode ? CGSize(width: 224, height: 258) : CGSize(width: 260, height: 52)
+        if store.showQRCode { return CGSize(width: 224, height: 258) }
+        if store.idToken == nil { return CGSize(width: 168, height: 52) }
+        return CGSize(width: 260, height: 52)
     }
 
     var body: some View {
@@ -38,7 +40,7 @@ private struct CompactWidgetView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .frame(width: 260)
+        .frame(width: store.idToken == nil ? 168 : 260)
         .background(
             Capsule(style: .continuous)
                 .fill(.ultraThinMaterial)
@@ -57,13 +59,13 @@ private struct CompactWidgetView: View {
                 Image(systemName: "person.crop.circle.badge.plus")
                     .font(.system(size: 13, weight: .semibold))
                 Text("Sign in")
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
             }
-                .padding(.vertical, 5)
-            .background(Capsule().fill(Color.white.opacity(0.10)))
             .foregroundStyle(.white)
         }
         .buttonStyle(.plain)
+
+        Spacer(minLength: 0)
 
         Button { store.stopDemo() } label: {
             ZStack {
