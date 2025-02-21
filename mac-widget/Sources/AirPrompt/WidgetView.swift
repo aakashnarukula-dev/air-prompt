@@ -6,7 +6,7 @@ struct WidgetView: View {
 
     private var windowSize: CGSize {
         if store.showQRCode { return CGSize(width: 224, height: 258) }
-        if store.idToken == nil { return CGSize(width: 168, height: 52) }
+        if store.idToken == nil { return CGSize(width: 136, height: 52) }
         return CGSize(width: 260, height: 52)
     }
 
@@ -64,8 +64,6 @@ private struct CompactWidgetView: View {
             .foregroundStyle(.white)
         }
         .buttonStyle(.plain)
-
-        Spacer(minLength: 0)
 
         Button { store.stopDemo() } label: {
             ZStack {
