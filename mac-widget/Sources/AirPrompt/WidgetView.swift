@@ -6,7 +6,7 @@ struct WidgetView: View {
 
     private var windowSize: CGSize {
         if store.showQRCode { return CGSize(width: 224, height: 258) }
-        if store.idToken == nil { return CGSize(width: 176, height: 52) }
+        if store.idToken == nil { return CGSize(width: 140, height: 52) }
         return CGSize(width: 260, height: 52)
     }
 
@@ -38,9 +38,9 @@ private struct CompactWidgetView: View {
                 signedInContent
             }
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, store.idToken == nil ? 10 : 14)
         .padding(.vertical, 10)
-        .frame(width: store.idToken == nil ? 168 : 260)
+        .frame(width: store.idToken == nil ? 140 : 260)
         .background(
             Capsule(style: .continuous)
                 .fill(.ultraThinMaterial)
