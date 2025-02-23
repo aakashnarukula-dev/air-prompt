@@ -9,7 +9,7 @@ const statusEl = document.getElementById("status") as HTMLElement;
 function showStatus(msg: string, isError = false) {
   statusEl.textContent = msg;
   statusEl.classList.toggle("error", isError);
-  statusEl.classList.add("show");
+  statusEl.classList.toggle("success", !isError);
 }
 
 document.querySelectorAll<HTMLButtonElement>("button[data-provider]").forEach((btn) => {
@@ -26,7 +26,16 @@ document.querySelectorAll<HTMLButtonElement>("button[data-provider]").forEach((b
           body: JSON.stringify({ state, idToken: token }),
         });
         if (res.ok) {
-          showStatus("Signed in. Return to Air Prompt — you can close this tab.");
+          showStatus("Signed in. Closing…", false);
+          // Try to close tab (works if opened via script, not always from external link).
+          setTimeout(() => {
+            try { window.close(); } catch {}
+            // Browsers usually block window.close on user-opened tabs. Fallback:
+            // redirect to blank page so the user sees it clearly closed.
+            setTimeout(() => {
+              document.body.innerHTML = "<div style='display:grid;place-items:center;min-height:100vh;color:#86efac;font-family:system-ui;font-size:14px'>Signed in. You can close this tab.</div>";
+            }, 400);
+          }, 600);
         } else {
           showStatus("Failed to hand off token. Try again.", true);
         }
