@@ -145,12 +145,12 @@ private struct PairingWidgetView: View {
                 Image(nsImage: qrImage)
                     .interpolation(.none)
                     .resizable()
-                    .frame(width: 204, height: 204)
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .aspectRatio(1, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             } else {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .fill(Color.white.opacity(0.06))
-                    .frame(width: 204, height: 204)
+                    .aspectRatio(1, contentMode: .fit)
                     .overlay(ProgressView().scaleEffect(1.2))
             }
 
@@ -158,35 +158,20 @@ private struct PairingWidgetView: View {
                 .font(.system(size: 11, weight: .medium, design: .rounded))
                 .foregroundStyle(.white.opacity(0.55))
                 .multilineTextAlignment(.center)
-                .frame(width: 188)
 
-            HStack(spacing: 8) {
-                Button(action: { store.copyShareLink() }) {
-                    Text(store.copiedShareLink ? "Copied" : "Copy Link")
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(.white.opacity(store.joinURL.isEmpty ? 0.3 : 0.65))
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 5)
-                        .background(Capsule().fill(Color.white.opacity(0.07)))
-                }
-                .buttonStyle(.plain)
-                .disabled(store.joinURL.isEmpty)
-
-                Button(action: { store.stopDemo() }) {
-                    Text("Stop")
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.45))
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 5)
-                        .background(Capsule().fill(Color.white.opacity(0.07)))
-                }
-                .buttonStyle(.plain)
+            Button(action: { store.stopDemo() }) {
+                Text("Stop")
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.65))
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 5)
+                    .background(Capsule().fill(Color.white.opacity(0.07)))
             }
+            .buttonStyle(.plain)
         }
         .padding(8)
         .frame(width: 224, height: 258)
         .background(.ultraThinMaterial)
-        .background(DragRegion())
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
