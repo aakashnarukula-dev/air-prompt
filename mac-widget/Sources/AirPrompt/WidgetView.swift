@@ -5,7 +5,7 @@ struct WidgetView: View {
     @EnvironmentObject private var store: WidgetStore
 
     private var windowSize: CGSize {
-        if store.showQRCode { return CGSize(width: 224, height: 258) }
+        if store.showQRCode { return CGSize(width: 224, height: 224) }
         if store.idToken == nil { return CGSize(width: 140, height: 52) }
         return CGSize(width: 260, height: 52)
     }
@@ -140,43 +140,32 @@ private struct PairingWidgetView: View {
     }
 
     var body: some View {
-        VStack(spacing: 10) {
+        ZStack(alignment: .bottom) {
             if let qrImage {
                 Image(nsImage: qrImage)
                     .interpolation(.none)
                     .resizable()
-                    .aspectRatio(1, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .aspectRatio(1, contentMode: .fill)
+                    .frame(width: 224, height: 224)
             } else {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color.white.opacity(0.06))
-                    .aspectRatio(1, contentMode: .fit)
+                Color.white.opacity(0.06)
+                    .frame(width: 224, height: 224)
                     .overlay(ProgressView().scaleEffect(1.2))
             }
 
-            Text("Scan to connect your phone")
-                .font(.system(size: 11, weight: .medium, design: .rounded))
-                .foregroundStyle(.white.opacity(0.55))
-                .multilineTextAlignment(.center)
-
             Button(action: { store.stopDemo() }) {
                 Text("Stop")
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.65))
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 5)
-                    .background(Capsule().fill(Color.white.opacity(0.07)))
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 6)
+                    .background(Capsule().fill(Color.black.opacity(0.65)))
             }
             .buttonStyle(.plain)
+            .padding(.bottom, 10)
         }
-        .padding(8)
-        .frame(width: 224, height: 258)
-        .background(.ultraThinMaterial)
+        .frame(width: 224, height: 224)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
-        )
     }
 
 }
