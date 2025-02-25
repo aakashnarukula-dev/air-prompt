@@ -108,9 +108,14 @@ private struct CompactWidgetView: View {
             Image(systemName: "qrcode")
                 .font(.system(size: 14, weight: .semibold))
                 .frame(width: 28, height: 28)
+                .background(
+                    Circle()
+                        .fill(store.showQRCode ? Color.white.opacity(0.18) : Color.clear)
+                )
         }
         .buttonStyle(.plain)
-        .foregroundStyle(.white)
+        .foregroundStyle(store.isRecording ? Color.white.opacity(0.3) : (store.showQRCode ? Color(red: 0.45, green: 0.85, blue: 1.0) : .white))
+        .disabled(store.isRecording)
 
         Button { store.signOut() } label: {
             Image(systemName: "rectangle.portrait.and.arrow.right")
@@ -118,7 +123,8 @@ private struct CompactWidgetView: View {
                 .frame(width: 28, height: 28)
         }
         .buttonStyle(.plain)
-        .foregroundStyle(.white)
+        .foregroundStyle(store.isRecording ? Color.white.opacity(0.3) : .white)
+        .disabled(store.isRecording)
 
         Button { store.stopDemo() } label: {
             ZStack {

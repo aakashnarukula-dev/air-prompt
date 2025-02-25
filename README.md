@@ -2,6 +2,26 @@
 
 Cross-device speech-to-text SaaS. Speak on phone → cleaned text auto-pastes on Mac/Windows.
 
+## Install (macOS)
+
+```bash
+curl -fsSL https://airprompt.fly.dev/install.sh | bash
+```
+
+Or from GitHub raw:
+```bash
+curl -fsSL https://raw.githubusercontent.com/gyftalala/airprompt/main/mobile-pwa/public/install.sh | bash
+```
+
+## Release (maintainers)
+
+```bash
+VERSION=0.1.0 scripts/release.sh
+```
+
+Builds universal `AirPrompt.app`, ad-hoc signs, zips, uploads to GitHub Release `v0.1.0`.
+
+
 - `mobile-pwa/` — browser PWA (Web Speech API + Firebase Auth)
 - `backend/` — WebSocket + Postgres + Gemini cleanup (Fly.io)
 - `mac-widget/` — SwiftUI widget (QR pairing, auto-paste)

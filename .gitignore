@@ -11,4 +11,13 @@ backend/dist/
 mobile-pwa/dist/
 mac-widget/.build/
 mac-widget/.swiftpm/
+mac-widget/build/
+.vite/
 **/*-firebase-adminsdk-*.json
+
+# Build artifacts
+/Air Prompt.app/
+/Air Prompt.dmg
+/Launch Air Prompt.command
+/.airprompt/Air Prompt Widget.app/
+/dist/

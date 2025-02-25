@@ -27,9 +27,8 @@ struct WindowAccessor: NSViewRepresentable {
             guard let window = nsView.window else { return }
             if window.contentLayoutRect.size != size {
                 let oldFrame = window.frame
-                let newOriginY = oldFrame.origin.y + oldFrame.height - size.height
                 window.setContentSize(size)
-                window.setFrameOrigin(NSPoint(x: oldFrame.origin.x + oldFrame.width - size.width, y: max(newOriginY, (window.screen ?? NSScreen.main)!.visibleFrame.minY + 12)))
+                window.setFrameOrigin(NSPoint(x: oldFrame.origin.x + oldFrame.width - size.width, y: oldFrame.origin.y))
             }
         }
     }

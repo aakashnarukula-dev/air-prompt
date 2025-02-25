@@ -29,10 +29,9 @@ final class WidgetStore: ObservableObject {
     func beginLogin() {
         let state = UUID().uuidString
         self.pollState = state
-        let backendBase = currentBackendBase.isEmpty
-            ? (AppConfigLoader.load()?.backendURL ?? "http://localhost:8787")
-            : currentBackendBase
+        let backendBase = currentBackendBase.isEmpty ? AppConfig.backendBaseURL : currentBackendBase
         let urlStr = "\(backendBase)/login.html?state=\(state)&widget=1"
+        Self.log("beginLogin state=\(state) url=\(urlStr)")
         if let url = URL(string: urlStr) {
             NSWorkspace.shared.open(url)
         }
@@ -65,18 +64,29 @@ final class WidgetStore: ObservableObject {
     }
 
     private func pollTokenOnce(state: String, onToken: @Sendable @escaping (String?) -> Void) {
-        let backendBase = currentBackendBase.isEmpty
-            ? (AppConfigLoader.load()?.backendURL ?? "http://localhost:8787")
-            : currentBackendBase
+        let backendBase = currentBackendBase.isEmpty ? AppConfig.backendBaseURL : currentBackendBase
         guard let url = URL(string: "\(backendBase)/auth/poll?state=\(state)") else {
             onToken(nil); return
         }
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            guard let data = data,
-                  let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let token = obj["idToken"] as? String else {
+        URLSession.shared.dataTask(with: url) { data, _, err in
+            if let err = err {
+                Self.log("poll err: \(err.localizedDescription)")
                 onToken(nil); return
             }
+            guard let data = data else {
+                Self.log("poll: no data")
+                onToken(nil); return
+            }
+            let raw = String(data: data, encoding: .utf8) ?? ""
+            guard let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                Self.log("poll: bad json: \(raw.prefix(80))")
+                onToken(nil); return
+            }
+            guard let token = obj["idToken"] as? String else {
+                // No token yet — normal, don't spam log
+                onToken(nil); return
+            }
+            Self.log("poll: got token len=\(token.count)")
             onToken(token)
         }.resume()
     }
@@ -106,10 +116,10 @@ final class WidgetStore: ObservableObject {
     func bootstrap() {
         let mobileBase = config?.mobileURL
             ?? ProcessInfo.processInfo.environment["AIR_PROMPT_MOBILE_URL"]
-            ?? "http://localhost:5173"
+            ?? AppConfig.backendBaseURL
         currentBackendBase = config?.backendURL
             ?? ProcessInfo.processInfo.environment["AIR_PROMPT_BACKEND_URL"]
-            ?? "http://localhost:8787"
+            ?? AppConfig.backendBaseURL
         showQRCode = false
         mobileConnected = false
         liveText = Self.defaultPrompt
@@ -135,15 +145,12 @@ final class WidgetStore: ObservableObject {
         config = AppConfigLoader.load()
         let backendBase = config?.backendURL
             ?? ProcessInfo.processInfo.environment["AIR_PROMPT_BACKEND_URL"]
-            ?? "http://localhost:8787"
+            ?? AppConfig.backendBaseURL
         currentBackendBase = backendBase
-        // Refresh joinURL from config only if the current one is a localhost
-        // placeholder (i.e. we never got a real public URL). This prevents a
-        // good ngrok URL being replaced by a localhost fallback on reconnect.
         if joinURL.contains("localhost") || joinURL.isEmpty {
             let mobileBase = config?.mobileURL
                 ?? ProcessInfo.processInfo.environment["AIR_PROMPT_MOBILE_URL"]
-                ?? "http://localhost:5173"
+                ?? AppConfig.backendBaseURL
             joinURL = mobileBase
         }
         let wsBase = backendBase.replacingOccurrences(of: "http", with: "ws", options: .anchored, range: nil)
