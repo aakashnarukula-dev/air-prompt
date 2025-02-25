@@ -4,21 +4,25 @@ import AppKit
 struct WidgetView: View {
     @EnvironmentObject private var store: WidgetStore
 
+    private var pillWidth: CGFloat {
+        store.idToken == nil ? 140 : 260
+    }
+
     private var windowSize: CGSize {
-        if store.showQRCode { return CGSize(width: 224, height: 224) }
-        if store.idToken == nil { return CGSize(width: 140, height: 52) }
-        return CGSize(width: 260, height: 52)
+        if store.showQRCode && store.idToken != nil {
+            return CGSize(width: max(pillWidth, 224), height: 224 + 10 + 52)
+        }
+        return CGSize(width: pillWidth, height: 52)
     }
 
     var body: some View {
-        Group {
-            if store.showQRCode {
+        VStack(spacing: 10) {
+            if store.showQRCode && store.idToken != nil {
                 PairingWidgetView(store: store)
-            } else {
-                CompactWidgetView(store: store)
             }
+            CompactWidgetView(store: store)
         }
-        .frame(width: windowSize.width, height: windowSize.height, alignment: .top)
+        .frame(width: windowSize.width, height: windowSize.height, alignment: .bottom)
         .background(WindowAccessor(size: windowSize))
     }
 }
@@ -140,7 +144,7 @@ private struct PairingWidgetView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        Group {
             if let qrImage {
                 Image(nsImage: qrImage)
                     .interpolation(.none)
@@ -152,19 +156,7 @@ private struct PairingWidgetView: View {
                     .frame(width: 224, height: 224)
                     .overlay(ProgressView().scaleEffect(1.2))
             }
-
-            Button(action: { store.stopDemo() }) {
-                Text("Stop")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 6)
-                    .background(Capsule().fill(Color.black.opacity(0.65)))
-            }
-            .buttonStyle(.plain)
-            .padding(.bottom, 10)
         }
-        .frame(width: 224, height: 224)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
