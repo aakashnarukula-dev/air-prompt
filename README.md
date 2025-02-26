@@ -10,7 +10,7 @@ curl -fsSL https://airprompt.fly.dev/install.sh | bash
 
 Or from GitHub raw:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/gyftalala/airprompt/main/mobile-pwa/public/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/aakashnarukula-dev/airprompt/main/mobile-pwa/public/install.sh | bash
 ```
 
 ## Release (maintainers)
