@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Air Prompt installer — downloads latest release and installs to /Applications.
-# Usage:  curl -fsSL https://raw.githubusercontent.com/aakashnarukula-dev/airprompt/main/install.sh | bash
+# Usage:  curl -fsSL https://raw.githubusercontent.com/gyftalala/airprompt/main/install.sh | bash
 set -euo pipefail
 
-REPO="${AIRPROMPT_REPO:-aakashnarukula-dev/airprompt}"
+REPO="${AIRPROMPT_REPO:-gyftalala/airprompt}"
 APP_NAME="AirPrompt.app"
 INSTALL_DIR="/Applications"
 TMP="$(mktemp -d -t airprompt)"

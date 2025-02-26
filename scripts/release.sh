@@ -8,7 +8,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 WIDGET_DIR="$ROOT/mac-widget"
 DIST_DIR="$ROOT/dist"
 VERSION="${1:-${VERSION:-}}"
-REPO="${GH_REPO:-aakashnarukula-dev/airprompt}"
+REPO="${GH_REPO:-gyftalala/airprompt}"
 
 if [[ -z "$VERSION" ]]; then
   echo "VERSION required. Usage: scripts/release.sh 0.1.0" >&2
