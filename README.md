@@ -103,10 +103,10 @@ Full detail in [docs/architecture.md](docs/architecture.md).
 - Sessions are in-memory with a 30-minute idle TTL
 - Every WebSocket message carries a Firebase ID token that the server re-verifies
 
-## Source
+## Development
 
-The application source lives at **[github.com/aakashnarukula-dev/airprompt](https://github.com/aakashnarukula-dev/airprompt)**. This repository is the public showcase — docs, walkthrough, and design-language reference.
+Setup, install, release, and local-dev instructions live in **[DEVELOPMENT.md](DEVELOPMENT.md)**.
 
 ## License
 
-See the source repo for license details.
+MIT.
